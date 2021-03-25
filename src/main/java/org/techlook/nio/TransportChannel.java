@@ -72,13 +72,16 @@ public enum TransportChannel {
      * @param selector   nio Selector
      * @param attachment selector attachment that will be used when events registered on this channel
      * @param remote     the remote server address to be connected to
+     * @throws IOException      when exception is thrown in an underlying nio layer
      */
-    public abstract void createAndConnect(Selector selector, Object attachment, SocketAddress remote) throws IOException;
+    public abstract void createAndConnect(Selector selector, Object attachment, SocketAddress remote)
+            throws IOException;
 
     /**
      * finishing (outside basic logic in the SocketChannel) the selection key processing
      * @param key      SelectionKey to be processed
      * @param bundle   associated with it data
+     * @throws IOException      when exception is thrown in an underlying nio layer
      */
     public void finishKeyProcessing(SelectionKey key,
                              ChannelBundle bundle) throws IOException {

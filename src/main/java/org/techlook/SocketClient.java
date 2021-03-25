@@ -38,6 +38,7 @@ public interface SocketClient {
      *   ChannelListener listener, TransportChannel channel, DEFAULT_BUFFERS_MEMORY_USAGE)
      * @param server    the remote server address to be connecting to
      * @param listener  is used for asynchronous events listening
+     * @throws IOException      when exception is thrown in an underlying nio layer
      * @return          identifier of the opening connection
      */
     int connect(SocketAddress server, ChannelListener listener) throws IOException;
@@ -50,6 +51,7 @@ public interface SocketClient {
      * @param listener          is used for asynchronous events listening
      * @param transportChannel  TCP or UDP
      * @param readBufferSize    size of buffer for read operations, tune this parameter for increase read performance
+     * @throws IOException      when exception is thrown in an underlying nio layer
      * @return          identifier of the opening connection
      */
     int connect(SocketAddress server, ChannelListener listener, TransportChannel transportChannel,

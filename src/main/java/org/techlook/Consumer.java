@@ -25,8 +25,9 @@
 package org.techlook;
 
 /**
- *  Due this project must be compatible with JDK 7 the JDK's 8 java.util.function.Consumer<T> cannot be used,
+ *  Due this project must be compatible with JDK 7 the JDK's 8 java.util.function.Consumer cannot be used,
  *  therefore this interface can be used instead of it
+ * @param <T>  the type of consuming result
  */
 public interface Consumer<T> {
     /**
