@@ -3,10 +3,10 @@ name: Maven Package
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   build:
@@ -22,12 +22,12 @@ jobs:
           server-id: ossrh
           server-username: SONATYPE_USERNAME
           server-password: SONATYPE_PASSWORD
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          gpg-private-key: ${{ secrets.KEYSTORE }}
           gpg-passphrase: PRIVATE_KEY_PASSPHRASE
 
       - name: Publish package
         run: mvn clean deploy
         env:
           SONATYPE_USERNAME: 'uncloudedvm@gmail.com'
-          SONATYPE_PASSWORD: ${{ secret.SONATYPE_PASSWORD }}
-          PRIVATE_KEY_PASSPHRASE: ${{ secret.PRIVATE_KEY_PASSPHRASE }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          PRIVATE_KEY_PASSPHRASE: ${{ secrets.PRIVATE_KEY_PASSPHRASE }}
