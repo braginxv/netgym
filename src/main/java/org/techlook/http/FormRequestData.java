@@ -64,7 +64,8 @@ public class FormRequestData {
      * @param name          name of the field
      * @param fileName      uploading file name
      * @param contentType   MIME-type of the content, may be null
-     * @param fileContent  charset of the content, may be null
+     * @param fileContent   the file content itself, may be null
+     * @param charset       charset of the content, may be null
      */
     public void addFileField(String name, String fileName, byte[] fileContent, String contentType, Charset charset) {
         fields.add(new FormFileField(name, fileName, fileContent, contentType, charset));

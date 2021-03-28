@@ -62,6 +62,8 @@ public abstract class Either<L, R> {
     /**
      * create Either with the proper result
      * @param result proper result
+     * @param <L> left result
+     * @param <R> right result
      * @return new Either with proper result
      */
     public static <L, R> Either<L, R> right(R result)  {
@@ -71,6 +73,8 @@ public abstract class Either<L, R> {
     /**
      * create Either with the wrong result
      * @param leftResult wrong result
+     * @param <L> left result
+     * @param <R> right result
      * @return new Either with wrong result
      */
     public static <L, R> Either<L, R> left(L leftResult)  {

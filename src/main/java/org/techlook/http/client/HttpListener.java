@@ -43,7 +43,7 @@ public abstract class HttpListener {
 
     /**
      * At once HTTP headers have been parsed they are fallen here, then the charset picks from them.
-     * @param headers
+     * @param headers  headers in key-value format
      */
     public final void respondHeaders(Map<String, String> headers) {
         if (headers.containsKey(CONTENT_TYPE)) {
@@ -75,13 +75,13 @@ public abstract class HttpListener {
 
     /**
      * is called when byte chunk of the content has been received
-     * @param chunk
+     * @param chunk  transmitting data chunk
      */
     public abstract void respond(byte[] chunk);
 
     /**
      * occurs when something went wrong during response receiving
-     * @param message
+     * @param message  error message
      */
     public void failure(String message) {}
 
@@ -100,7 +100,7 @@ public abstract class HttpListener {
 
     /**
      * respond HTTP headers down to hierarchy of inheritance
-     * @param headers
+     * @param headers  headers in key-value format
      */
     public void respondHttpHeaders(Map<String, String> headers) {}
 
