@@ -1,12 +1,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.techlook</groupId>
+    <groupId>com.github.braginxv</groupId>
     <artifactId>netgym</artifactId>
     <packaging>jar</packaging>
     <version>0.5-SNAPSHOT</version>
-    <name>netgym</name>
-    <url>https://gitlab.com/techlook/async-client</url>
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>
+        Full-featured high performance asynchronous network library for client side jvm-apps (including Android).
+        It provides handling large number of parallel connections (TCP, UDP) using singleton instance of the client
+        in asynchronous or/and synchronous mode. This library supports HTTP/1.1 protocol,
+        secure socket connections via TLS including keep-alive connections, HTTP-pipelining.
+    </description>
+    <url>https://github.com/braginxv/netgym</url>
     <licenses>
         <license>
             <name>MIT</name>
@@ -14,6 +20,12 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+    <scm>
+        <connection>scm:git:https://github.com/braginxv/netgym.git</connection>
+        <developerConnection>scm:git:https://github.com/braginxv/netgym.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/braginxv/netgym.git</url>
+    </scm>
     <developers>
         <developer>
             <id>braginxv</id>
