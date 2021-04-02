@@ -100,9 +100,14 @@ public class AsyncSocketClient implements SocketClient {
     }
 
     @Override
-    public void send(byte[] data, int offset, int length, Integer channelId) {
+    public synchronized boolean send(byte[] data, int offset, int length, Integer channelId) {
+        if (!channels.containsKey(channelId)) {
+            return false;
+        }
+
         ChannelBundle channelBundle = channels.get(channelId);
         channelBundle.appendToWrite(data, offset, length);
+        return true;
     }
 
     @Override
@@ -113,8 +118,8 @@ public class AsyncSocketClient implements SocketClient {
     }
 
     @Override
-    public void close(int channel) {
-//        channels.remove(channel).close();
+    public synchronized void close(int channel) {
+        channels.remove(channel).close();
         selector.wakeup();
     }
 
@@ -127,7 +132,7 @@ public class AsyncSocketClient implements SocketClient {
                         int numberOfChannelsReady;
 
                         try {
-                            numberOfChannelsReady = selector.select(1000);
+                            numberOfChannelsReady = selector.select(1);
                         } catch (IOException e) {
                             completion.failure(Fault.AsyncClientError.format(e.getMessage()));
                             return;

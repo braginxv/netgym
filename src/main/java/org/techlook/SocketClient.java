@@ -63,8 +63,9 @@ public interface SocketClient {
      * @param offset     start index to copy
      * @param length     length of chunk copied from data
      * @param channelId  the channel identifier which have got by connecting
+     * @return   true if data is sent success
      */
-    void send(byte[] data, int offset, int length, Integer channelId);
+    boolean send(byte[] data, int offset, int length, Integer channelId);
 
     /**
      * Stopping the client to dispatch network messages

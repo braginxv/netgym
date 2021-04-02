@@ -40,6 +40,7 @@ class SSLChannel extends AbstractSSLAction implements ChannelListener {
     private volatile ByteBuffer incomingNetData;
     private volatile ByteBuffer incomingAppData;
     private volatile ByteBuffer residueChunk;
+    private volatile boolean shouldCloseChannel = false;
 
 
     public SSLChannel(final SSLEngine engine,

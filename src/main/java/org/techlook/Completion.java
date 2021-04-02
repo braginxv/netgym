@@ -39,6 +39,7 @@ public class Completion {
 
     /**
      * Create Completion instance with waiting completion time interval
+     *
      * @param timeout is time interval user thread will continue running despite the completion hasn't been finished
      */
     public Completion(int timeout) {
@@ -56,6 +57,7 @@ public class Completion {
 
     /**
      * blocks user thread and waits completion
+     *
      * @throws InterruptedException if waiting was interrupted
      */
     public synchronized void await() throws InterruptedException {
@@ -66,5 +68,14 @@ public class Completion {
                 wait();
             }
         }
+    }
+
+    /**
+     * Check whether completion has done
+     *
+     * @return true if finished
+     */
+    public boolean isFinished() {
+        return !inProgress;
     }
 }

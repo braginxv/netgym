@@ -148,7 +148,7 @@ public abstract class Either<L, R> {
         }
     }
 
-    private static class NoResultException extends Throwable {
+    public static class NoResultException extends Throwable {
         private NoResultException(String message) {
             super(message);
         }
