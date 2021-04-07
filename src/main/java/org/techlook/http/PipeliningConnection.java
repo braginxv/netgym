@@ -32,12 +32,15 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 /**
- * Single connection supposes each HTTP request opens and closes one TCP connection. This type of HTTP client should
- * use in cases when server doesn't support keep-alive connections (in particular pipelining connections). To be assumed
- * only one instance of the SocketClient will be used to performing all requests.
+ * This is the most advanced and performance kind of HTTP/1.1 client using HTTP pipelining.
+ * Most servers blocks multiple parallels requests to prevent dos-attacks,
+ * therefore it is recommended to send requests with slight delays.
  */
-public class SingleConnectionHttp implements Http {
+public class PipeliningConnection implements HttpConnection {
+    public static final long DEFAULT_SENDING_INTERVAL = 0;
+
     private final HttpAsyncClient httpClient;
+    private final long sendingTimeInterval;
 
     /**
      * Creation of this client and connection parameters saving
@@ -45,42 +48,65 @@ public class SingleConnectionHttp implements Http {
      * @param port         TCP port
      * @param asyncClient  asynchronous SocketClient instance to be used as transport for transmitting request
      */
-    public SingleConnectionHttp(String server, int port, SocketClient asyncClient) {
-        httpClient = new HttpAsyncClient(server, port, false, asyncClient);
+    public PipeliningConnection(String server, int port, SocketClient asyncClient) {
+        this(server, port, asyncClient, DEFAULT_SENDING_INTERVAL);
+    }
+
+    /**
+     * Creation of this client and connection parameters saving
+     * @param server       the remote server we need connect to
+     * @param port         TCP port
+     * @param asyncClient  asynchronous SocketClient instance to be used as transport for transmitting request
+     * @param sendingTimeInterval  the time interval of delaying send requests
+     */
+    public PipeliningConnection(String server, int port, SocketClient asyncClient, long sendingTimeInterval) {
+        this.sendingTimeInterval = sendingTimeInterval;
+        httpClient = new HttpAsyncClient(server, port, true, asyncClient);
     }
 
     @Override
-    public void get(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> parameters, HttpListener listener) {
+    public synchronized void get(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> parameters, HttpListener listener) {
         httpClient.get(url, additionalHeaders, parameters, listener);
+        throttle();
     }
 
     @Override
-    public void put(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
+    public synchronized void put(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
         httpClient.put(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener);
+        throttle();
     }
 
     @Override
     public void postContent(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
-        httpClient.postContent(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener);
+        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE can support HTTP Pipelining");
     }
 
     @Override
     public void postWithEncodedParameters(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> parameters, HttpListener listener) {
-        httpClient.postWithEncodedParameters(url, additionalHeaders, parameters, listener);
+        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE can support HTTP Pipelining");
     }
 
     @Override
     public void postFormData(String url, List<Pair<String, String>> additionalHeaders, FormRequestData requestData, HttpListener listener) {
-        httpClient.postFormData(url, additionalHeaders, requestData, listener);
+        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE can support HTTP Pipelining");
     }
 
     @Override
     public void optionsWithUrl(String url, HttpListener listener) {
-        httpClient.optionsWithUrl(url, listener);
+        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE can support HTTP Pipelining");
     }
 
     @Override
     public void options(HttpListener listener) {
-        httpClient.options(listener);
+        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE can support HTTP Pipelining");
+    }
+
+    private synchronized void throttle() {
+        if (sendingTimeInterval > 0) {
+            try {
+                wait(sendingTimeInterval);
+            } catch (InterruptedException ignored) {
+            }
+        }
     }
 }

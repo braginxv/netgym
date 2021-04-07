@@ -32,11 +32,11 @@ import org.techlook.ResultedCompletion;
  * Use this class to get the entire response with string content,
  * blocking the user thread until it is completely received.
  */
-public class SyncStringResponse extends StringResponseListener {
+public class SyncStringResponseListener extends StringResponseListener {
     private ResultedCompletion<StringResponse> completion = new ResultedCompletion<>();
 
     @Override
-    public void respondAsStringResult(Either<String, StringResponse> responseEither) {
+    public void respondString(Either<String, StringResponse> responseEither) {
         responseEither.right().apply(new Consumer<StringResponse>() {
             @Override
             public void consume(StringResponse response) {

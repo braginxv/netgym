@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * another request is completed. This client may me used in cases if server supports keep-alive connections but
  * pipelining doesn't.
  */
-public class SequentialConnectionHttp implements Http {
+public class SequentialConnection implements HttpConnection {
     private static final int MAX_WAITING_REQUESTS_IN_SEQUENCE = 128;
 
     private final HttpAsyncClient httpClient;
@@ -54,7 +54,7 @@ public class SequentialConnectionHttp implements Http {
      * @param port         TCP port
      * @param asyncClient  asynchronous SocketClient instance to be used as transport for transmitting request
      */
-    public SequentialConnectionHttp(String server, int port, SocketClient asyncClient) {
+    public SequentialConnection(String server, int port, SocketClient asyncClient) {
         httpClient = new HttpAsyncClient(server, port, true, asyncClient);
     }
 

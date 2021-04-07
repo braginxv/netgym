@@ -105,7 +105,7 @@ public enum TransportChannel {
 
         if (!key.isValid()) {
             bundle.close();
-        } else {
+        } else if (interestOps != key.interestOps()) {
             key.interestOps(interestOps);
         }
     }

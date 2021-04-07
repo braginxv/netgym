@@ -70,8 +70,12 @@ public class SSLSocketClient implements SocketClient {
     }
 
     @Override
-    public void send(byte[] data, int offset, int length, Integer channelId) {
-        sslChannels.get(channelId).send(data, offset, length);
+    public synchronized boolean send(byte[] data, int offset, int length, Integer channelId) {
+        if (sslChannels.containsKey(channelId)) {
+            sslChannels.get(channelId).send(data, offset, length);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -80,7 +84,7 @@ public class SSLSocketClient implements SocketClient {
     }
 
     @Override
-    public void close(int channel) {
+    public synchronized void close(int channel) {
         sslChannels.remove(channel).waitFinishing();
         transport.close(channel);
     }

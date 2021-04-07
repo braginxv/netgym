@@ -36,7 +36,7 @@ import java.util.List;
  * are required for appropriate HTTP method. For example the GET method adds Connection and
  * Accept-Encoding headers hence you shouldn't add they as additional headers.
  */
-public interface Http {
+public interface HttpConnection {
     /**
      * HTTP GET method
      * @param url                the request URL to be fetched

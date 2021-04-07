@@ -39,7 +39,7 @@ public abstract class StringResponseListener extends ByteResponseListener {
         responseEither.left().apply(new Consumer<String>() {
             @Override
             public void consume(String value) {
-                respondAsStringResult(Either.<String, StringResponse>left(value));
+                respondString(Either.<String, StringResponse>left(value));
             }
         });
         responseEither.right().apply(new Consumer<Response>() {
@@ -58,7 +58,7 @@ public abstract class StringResponseListener extends ByteResponseListener {
                     failure(Fault.BadEncoding.format(e.getMessage()));
                     return;
                 }
-                respondAsStringResult(Either.<String, StringResponse>right(new StringResponse(response.getCode(),
+                respondString(Either.<String, StringResponse>right(new StringResponse(response.getCode(),
                         response.getHttpVersion(), response.getResponseDescription(),
                         response.getHeaders(), content, response.getCharset())));
             }
@@ -69,5 +69,5 @@ public abstract class StringResponseListener extends ByteResponseListener {
      * Implement this method to obtain whole string response
      * @param response  string response
      */
-    public abstract void respondAsStringResult(Either<String, StringResponse> response);
+    public abstract void respondString(Either<String, StringResponse> response);
 }

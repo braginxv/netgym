@@ -29,7 +29,7 @@ import org.techlook.Fault;
 import org.techlook.SocketClient;
 import org.techlook.http.FormField;
 import org.techlook.http.FormRequestData;
-import org.techlook.http.Http;
+import org.techlook.http.HttpConnection;
 import org.techlook.http.Pair;
 
 import java.io.IOException;
@@ -42,19 +42,22 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
-public class HttpAsyncClient implements Http {
+public class HttpAsyncClient implements HttpConnection, ChannelListener {
     private final static Logger log = Logger.getLogger(HttpAsyncClient.class.getName());
 
     private final String server;
     private final int port;
     private final SocketClient client;
     private final boolean isPersistent;
-    private final HttpChannelListener channelListener = new HttpChannelListener();
-    private volatile int connectId;
+    private final ConcurrentLinkedQueue<HttpListener> listeners = new ConcurrentLinkedQueue<>();
+    private final AtomicInteger connectId = new AtomicInteger(-1);
+    private final AtomicReference<HttpSession> httpSession = new AtomicReference<>();
 
     public HttpAsyncClient(String server, int port, boolean isPersistent, SocketClient asyncClient) {
         this.client = asyncClient;
@@ -68,6 +71,7 @@ public class HttpAsyncClient implements Http {
                     List<Pair<String, String>> additionalHeaders,
                     List<Pair<String, String>> parameters,
                     HttpListener listener) {
+        putListener(listener);
         StringBuilder request = initRequestBuilder(url);
 
         if (parameters != null && !parameters.isEmpty()) {
@@ -76,13 +80,12 @@ public class HttpAsyncClient implements Http {
         }
 
         final String requestHeader = String.format(
-                "GET %s HTTP/1.1\nHost: %s\nConnection: %s%sAccept-Encoding: gzip,deflate\n\n",
+                "GET %s HTTP/1.1\nHost: %s\nConnection: %s%sAccept-Encoding: gzip, deflate\n\n",
                 request,
                 server,
                 isPersistent ? "keep-alive" : "close",
                 encodeHeaders(additionalHeaders));
 
-        if (!checkWhetherConnectionIsValid(listener)) return;
         sendViaTransport(requestHeader);
     }
 
@@ -94,8 +97,9 @@ public class HttpAsyncClient implements Http {
                     Charset contentCharset,
                     byte[] content,
                     HttpListener listener) {
+        putListener(listener);
         sendContent("PUT",
-                url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener);
+                url, additionalHeaders, urlParameters, contentType, contentCharset, content);
     }
 
     @Override
@@ -106,8 +110,9 @@ public class HttpAsyncClient implements Http {
                             Charset contentCharset,
                             byte[] content,
                             HttpListener listener) {
+        putListener(listener);
         sendContent("POST",
-                url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener);
+                url, additionalHeaders, urlParameters, contentType, contentCharset, content);
     }
 
     @Override
@@ -115,6 +120,7 @@ public class HttpAsyncClient implements Http {
                                           List<Pair<String, String>> additionalHeaders,
                                           List<Pair<String, String>> parameters,
                                           HttpListener listener) {
+        putListener(listener);
         StringBuilder request = initRequestBuilder(url);
 
         String parametersHeader = "";
@@ -132,8 +138,6 @@ public class HttpAsyncClient implements Http {
                 encodeHeaders(additionalHeaders),
                 parametersHeader);
 
-        if (!checkWhetherConnectionIsValid(listener)) return;
-
         sendViaTransport(requestHeader);
         if (!body.isEmpty()) {
             sendViaTransport(body);
@@ -145,6 +149,7 @@ public class HttpAsyncClient implements Http {
                              List<Pair<String, String>> additionalHeaders,
                              FormRequestData requestData,
                              HttpListener listener) {
+        putListener(listener);
         StringBuilder request = initRequestBuilder(url);
 
         String formFieldsHeader = "";
@@ -160,14 +165,13 @@ public class HttpAsyncClient implements Http {
                 encodeHeaders(additionalHeaders),
                 formFieldsHeader);
 
-        if (!checkWhetherConnectionIsValid(listener)) return;
-
         sendViaTransport(requestHeader);
         sendFormData(requestData);
     }
 
     @Override
     public void optionsWithUrl(String url, HttpListener listener) {
+        putListener(listener);
         StringBuilder request = initRequestBuilder(url);
 
         final String requestHeader = String.format(
@@ -175,15 +179,13 @@ public class HttpAsyncClient implements Http {
                 request,
                 server);
 
-        if (!checkWhetherConnectionIsValid(listener)) return;
-
         sendViaTransport(requestHeader);
     }
 
     @Override
     public void options(HttpListener listener) {
+        putListener(listener);
         final String requestHeader = String.format("OPTIONS * HTTP/1.1\nHost: %s\n\n", server);
-        if (!checkWhetherConnectionIsValid(listener)) return;
         sendViaTransport(requestHeader);
     }
 
@@ -193,12 +195,11 @@ public class HttpAsyncClient implements Http {
                              List<Pair<String, String>> urlParameters,
                              String contentType,
                              Charset contentCharset,
-                             byte[] content,
-                             HttpListener listener) {
+                             byte[] content) {
         StringBuilder request = initRequestBuilder(url);
         String contentHeaders = "";
         if (contentType != null && content != null) {
-            String charset = contentCharset == null ? "" : ";charset=" + contentCharset.name();
+            String charset = contentCharset == null ? "" : "; charset=" + contentCharset.name();
             contentHeaders = String.format("Content-type: %s%s\nContent-length: %d",
                     contentType, charset, content.length);
         }
@@ -217,9 +218,57 @@ public class HttpAsyncClient implements Http {
                 encodeHeaders(additionalHeaders),
                 contentHeaders);
 
-        if (!checkWhetherConnectionIsValid(listener)) return;
         sendViaTransport(requestHeader);
         sendViaTransport(content);
+    }
+
+    private HttpListener createSessionListener(final HttpListener listener) {
+        return new HttpListener() {
+            @Override
+            public void responseCode(int code, String httpVersion, String description) {
+                listener.responseCode(code, httpVersion, description);
+            }
+
+            @Override
+            public void respond(byte[] chunk) {
+                listener.respond(chunk);
+            }
+
+            @Override
+            public void complete() {
+                listener.complete();
+                HttpListener nextListener = listeners.poll();
+                httpSession.set(nextListener == null ? null : new HttpSession(nextListener, client.getThreadPool()));
+            }
+
+            @Override
+            public void connectionClosed() {
+                listener.connectionClosed();
+            }
+
+            @Override
+            public void failure(String message) {
+                listener.failure(message);
+            }
+
+            @Override
+            public Charset getCharset() {
+                return listener.getCharset();
+            }
+
+            @Override
+            public void respondHttpHeaders(Map<String, String> headers) {
+                listener.respondHeaders(headers);
+            }
+        };
+    }
+
+    private synchronized void putListener(final HttpListener listener) {
+        HttpListener sessionListener = createSessionListener(listener);
+        if (!httpSession.compareAndSet(null,
+                new HttpSession(sessionListener, client.getThreadPool()))) {
+            listeners.add(sessionListener);
+        }
     }
 
     private void sendFormData(FormRequestData requestData) {
@@ -236,23 +285,20 @@ public class HttpAsyncClient implements Http {
         sendViaTransport(string.getBytes(StandardCharsets.UTF_8));
     }
 
-    private void sendViaTransport(byte[] buffer) {
-        client.send(buffer, 0, buffer.length, connectId);
+    private synchronized void sendViaTransport(byte[] buffer) {
+        if ((connectId.get() < 0 || !client.send(buffer, 0, buffer.length, connectId.get()))
+                && reconnect()) {
+            client.send(buffer, 0, buffer.length, connectId.get());
+        }
     }
 
-    private boolean checkWhetherConnectionIsValid(HttpListener listener) {
-        channelListener.orderListener(listener);
-        if (!isPersistent || connectId <= 0) {
-            try {
-                synchronized (this) {
-                    connectId = client.connect(new InetSocketAddress(server, port), channelListener);
-                }
-            } catch (IOException e) {
-                String errorMessage = Fault.AsyncClientError.format(e.getMessage());
-                log.log(Level.SEVERE, errorMessage);
-                listener.failure(errorMessage);
-                return false;
-            }
+    private boolean reconnect() {
+        try {
+            connectId.set(client.connect(new InetSocketAddress(server, port), this));
+        } catch (IOException e) {
+            String errorMessage = Fault.AsyncClientError.format(e.getMessage());
+            log.log(Level.SEVERE, errorMessage);
+            return false;
         }
 
         return true;
@@ -289,83 +335,23 @@ public class HttpAsyncClient implements Http {
         return result.toString();
     }
 
-    private class HttpChannelListener extends HttpListener implements ChannelListener {
-        private final ConcurrentLinkedQueue<HttpListener> listeners = new ConcurrentLinkedQueue<>();
-        private volatile HttpListener currentListener;
-        private volatile HttpSession session;
+    // ChannelListener methods
 
-        @Override
-        public void channelError(String message) {
-            currentListener.failure(message);
-        }
+    @Override
+    public void channelError(String message) {
+        httpSession.get().getListener().failure(message);
+        connectId.set(-1);
+        log.log(Level.SEVERE, message);
+    }
 
-        @Override
-        public synchronized void chunkIsReceived(byte[] chunk) {
-            session.read(chunk);
-        }
+    @Override
+    public void chunkIsReceived(byte[] chunk) {
+        httpSession.get().read(chunk);
+    }
 
-        @Override
-        public void close() {
-            connectId = -1;
-        }
-
-        synchronized void orderListener(HttpListener listener) {
-            if (connectId <= 0) {
-                currentListener = listener;
-                session = new HttpSession(this, client.getThreadPool());
-            } else {
-                listeners.add(listener);
-            }
-        }
-
-        // HttpListener methods
-
-        @Override
-        public void responseCode(int code, String httpVersion, String description) {
-            currentListener.responseCode(code, httpVersion, description);
-        }
-
-        @Override
-        public void respond(byte[] chunk) {
-            currentListener.respond(chunk);
-        }
-
-        @Override
-        public synchronized void complete() {
-            currentListener.complete();
-            currentListener = null;
-            HttpListener listener = listeners.poll();
-            if (listener != null) {
-                currentListener = listener;
-                session = new HttpSession(this, client.getThreadPool());
-            }
-        }
-
-        @Override
-        public synchronized void connectionClosed() {
-            connectId = -1;
-            currentListener.connectionClosed();
-            HttpListener nextListener;
-            while ((nextListener = listeners.poll()) != null) {
-                nextListener.connectionClosed();
-            }
-            session = null;
-        }
-
-        @Override
-        public void failure(String message) {
-            currentListener.failure(message);
-        }
-
-        @Override
-        public Charset getCharset() {
-            return currentListener.getCharset();
-        }
-
-        @Override
-        public void respondHttpHeaders(Map<String, String> headers) {
-            currentListener.respondHttpHeaders(headers);
-        }
+    @Override
+    public void close() {
+        connectId.set(-1);
     }
 
     private static final class Boundary {

@@ -83,6 +83,14 @@ public class HttpSession {
     }
 
     /**
+     * get events listener
+     * @return the http listener
+     */
+    public HttpListener getListener() {
+        return listener;
+    }
+
+    /**
      * read incoming chunk from channel
      * @param chunk chunk
      */
