@@ -5,8 +5,7 @@ socket-based (TCP and UDP) connections. Among TCP features it
 supports secure socket connections (TLS), HTTP/1.1, including:
 
 1. Rest methods GET, POST (with arbitrary content, url-encoded, form-data), PUT, DELETE, OPTIONS
-1. Diverse HTTP/1.1 connections: Single/Closable (per request), Keep-alive and Pipelining. Per-request
-   (closable) connection perform parallel.
+1. Diverse HTTP/1.1 connections: Single/Closable (per request), Keep-alive and Pipelining.
 1. HTTPS over TLS connections using the latest version of TLS available on running JVM and coordinating with the remote
    server.
 
@@ -15,7 +14,7 @@ limited thread pool. Furthermore, different stages or operations of one connecti
 thread pool. This pool so-called fork-join thread pool provides large number of parallel operations over the small
 number of threads.
 
-![Thread model](images/netgym-thread model.png)
+![Thread model](images/netgym_thread_model.png)
 
 As it is shown above, the following operations are executing parallel allowing to increase a performance:
 
@@ -23,11 +22,11 @@ As it is shown above, the following operations are executing parallel allowing t
 1. Gzip/deflate uncompressing of a response content
 1. Outgoing data encryption (TLS)
 
-##Prerequisites
+## Prerequisites
 Runtime assemblies of "netgym" library doesn't depend on other packages and requires only JDK 1.7 or higher.
 Assembling of this package depends on JUnit 4 and Mockito testing frameworks.
 
-##Typical usage
+## Typical usage
 ### Asynchronous mode
 
 Suppose we need to download images listed in `images` variable from remote server.
@@ -59,7 +58,7 @@ for (String imageToBeDownloaded: images) {
            if (response.getCode() == HttpsURLConnection.HTTP_OK) {
                // use image content here, e.g. save it to file using response.getContent()
            } else {
-               report about server response overwize
+               // report about server response
            }
        });
    });
@@ -95,7 +94,7 @@ ClientSystem.client().shutdown();
 ClientSystem.client().awaitTerminating();
 ```
 
-##HTTP connection types
+## HTTP connection types
 The client supports following connections for HTTP/1.1
 
 1. `httpRequestBuilder.configureConnection(HttpRequestBuilder.ConnectionType.Single)`
