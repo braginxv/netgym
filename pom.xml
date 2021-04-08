@@ -4,13 +4,12 @@
     <groupId>com.github.braginxv</groupId>
     <artifactId>netgym</artifactId>
     <packaging>jar</packaging>
-    <version>0.5-SNAPSHOT</version>
+    <version>0.6-beta</version>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>
-        Full-featured high performance asynchronous network library for client side jvm-apps (including Android).
-        It provides handling large number of parallel connections (TCP, UDP) using singleton instance of the client
-        in asynchronous or/and synchronous mode. This library supports HTTP/1.1 protocol,
-        secure socket connections via TLS including keep-alive connections, HTTP-pipelining.
+        Full-featured high performance asynchronous network library for a client side of jvm-apps (including Android).
+        It provides handling large number of parallel connections (TCP, UDP) using single instance of the client
+        in asynchronous or/and synchronous mode.
     </description>
     <url>https://github.com/braginxv/netgym</url>
     <licenses>
