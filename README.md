@@ -60,7 +60,7 @@ parallel to maximize performance and minimize receiving time, and furthermore it
 prevent blocking userspace thread (such as UI thread).
 
 ```java
-final HttpRequestBuilder requestBuilder=new HttpRequestBuilder()
+final HttpRequestBuilder requestBuilder = new HttpRequestBuilder()
      .baseUrl("https://server/path/to/images/")
      .addHeader("User-Agent","netgym network client")
      .configureConnection(HttpRequestBuilder.ConnectionType.Single);
@@ -98,7 +98,7 @@ it. In other words user's thread would be blocked until a response is received. 
 adapters like this:
 
 ```java
-final HttpRequestBuilder requestBuilder=new HttpRequestBuilder()
+final HttpRequestBuilder requestBuilder = new HttpRequestBuilder()
      .baseUrl("https://klike.net/uploads/posts/2018-11/")
      .addHeader("User-Agent","netgym 0.5-snapshot")
      .configureConnection(HttpRequestBuilder.ConnectionType.Persistent);
@@ -122,6 +122,9 @@ ClientSystem.client().awaitTerminating();
 ### RxJava example
 
 ```java
+
+List<String> imagePaths = ... // paths on the server to images to be downloaded        
+
 Observable
     .fromIterable(imagePaths)
     .flatMap(path -> Observable.create((ObservableEmitter<Pair<String, Response>> emitter) ->
@@ -137,7 +140,7 @@ Observable
     .subscribe(image -> {
         String imageName = image.getKey();
         byte[] imageContent = image.getValue();
-        try (FileOutputStream outputStream = new FileOutputStream("/home/explorer/temp/img/" + imageName)) {
+        try (FileOutputStream outputStream = new FileOutputStream("/path-to-download/" + imageName)) {
             outputStream.write(imageContent);
         } catch (Exception e) {
             e.printStackTrace();
