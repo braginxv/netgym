@@ -68,6 +68,24 @@ public interface HttpConnection {
              HttpListener listener);
 
     /**
+     * HTTP DELETE method
+     * @param url                the request URL
+     * @param additionalHeaders  additional user defined HTTP headers
+     * @param urlParameters      request parameters which will be added to the URL
+     * @param contentType        MIME-type of the content (optional)
+     * @param contentCharset     content charset (optional)
+     * @param content            content (optional)
+     * @param listener           HTTP listener
+     */
+    void delete(String url,
+             List<Pair<String, String>> additionalHeaders,
+             List<Pair<String, String>> urlParameters,
+             String contentType,
+             Charset contentCharset,
+             byte[] content,
+             HttpListener listener);
+
+    /**
      * HTTP POST method for sending arbitrary content. Request parameters will be added to URL.
      * @param url                the request URL
      * @param additionalHeaders  additional user defined HTTP headers

@@ -39,6 +39,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -49,6 +50,18 @@ import java.util.logging.Logger;
 
 
 public class HttpAsyncClient implements HttpConnection, ChannelListener {
+    public static final class Method {
+        public static final String GET = "GET";
+        public static final String PUT = "GET";
+        public static final String DELETE = "DELETE";
+        public static final String OPTIONS = "OPTIONS";
+        public static final String POST = "POST";
+        public static final String HEAD = "HEAD";
+        public static final String PATCH = "PATCH";
+        public static final String CONNECT = "CONNECT";
+        public static final String TRACE = "TRACE";
+    }
+
     private final static Logger log = Logger.getLogger(HttpAsyncClient.class.getName());
 
     private final String server;
@@ -67,12 +80,12 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
     }
 
     @Override
-    public void get(String url,
+    public void get(String path,
                     List<Pair<String, String>> additionalHeaders,
                     List<Pair<String, String>> parameters,
                     HttpListener listener) {
         putListener(listener);
-        StringBuilder request = initRequestBuilder(url);
+        StringBuilder request = initRequestBuilder(path);
 
         if (parameters != null && !parameters.isEmpty()) {
             request.append("?");
@@ -80,7 +93,8 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
         }
 
         final String requestHeader = String.format(
-                "GET %s HTTP/1.1\nHost: %s\nConnection: %s%sAccept-Encoding: gzip, deflate\n\n",
+                "%s %s HTTP/1.1\nHost: %s\nConnection: %s\n%sAccept-Encoding: gzip, deflate\n\n",
+                Method.GET,
                 request,
                 server,
                 isPersistent ? "keep-alive" : "close",
@@ -90,7 +104,7 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
     }
 
     @Override
-    public void put(String url,
+    public void put(String path,
                     List<Pair<String, String>> additionalHeaders,
                     List<Pair<String, String>> urlParameters,
                     String contentType,
@@ -98,12 +112,25 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
                     byte[] content,
                     HttpListener listener) {
         putListener(listener);
-        sendContent("PUT",
-                url, additionalHeaders, urlParameters, contentType, contentCharset, content);
+        sendContent(Method.PUT,
+                path, additionalHeaders, urlParameters, contentType, contentCharset, content);
     }
 
     @Override
-    public void postContent(String url,
+    public void delete(String path,
+                    List<Pair<String, String>> additionalHeaders,
+                    List<Pair<String, String>> urlParameters,
+                    String contentType,
+                    Charset contentCharset,
+                    byte[] content,
+                    HttpListener listener) {
+        putListener(listener);
+        sendContent(Method.DELETE,
+                path, additionalHeaders, urlParameters, contentType, contentCharset, content);
+    }
+
+    @Override
+    public void postContent(String path,
                             List<Pair<String, String>> additionalHeaders,
                             List<Pair<String, String>> urlParameters,
                             String contentType,
@@ -111,17 +138,17 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
                             byte[] content,
                             HttpListener listener) {
         putListener(listener);
-        sendContent("POST",
-                url, additionalHeaders, urlParameters, contentType, contentCharset, content);
+        sendContent(Method.POST,
+                path, additionalHeaders, urlParameters, contentType, contentCharset, content);
     }
 
     @Override
-    public void postWithEncodedParameters(String url,
+    public void postWithEncodedParameters(String path,
                                           List<Pair<String, String>> additionalHeaders,
                                           List<Pair<String, String>> parameters,
                                           HttpListener listener) {
         putListener(listener);
-        StringBuilder request = initRequestBuilder(url);
+        StringBuilder request = initRequestBuilder(path);
 
         String parametersHeader = "";
         String body = "";
@@ -131,7 +158,8 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
                     "Content-Length: " + body.length();
         }
         final String requestHeader = String.format(
-                "POST %s HTTP/1.1\nHost: %s\nConnection: %s\n%s%s\nAccept-Encoding: gzip, deflate\n\n",
+                "%s %s HTTP/1.1\nHost: %s\nConnection: %s\n%s%s\nAccept-Encoding: gzip, deflate\n\n",
+                Method.POST,
                 request,
                 server,
                 isPersistent ? "keep-alive" : "close",
@@ -145,12 +173,12 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
     }
 
     @Override
-    public void postFormData(String url,
+    public void postFormData(String path,
                              List<Pair<String, String>> additionalHeaders,
                              FormRequestData requestData,
                              HttpListener listener) {
         putListener(listener);
-        StringBuilder request = initRequestBuilder(url);
+        StringBuilder request = initRequestBuilder(path);
 
         String formFieldsHeader = "";
 
@@ -158,7 +186,8 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
             formFieldsHeader = "Content-Type: multipart/form-data;boundary=\"" + Boundary.value + "\"\n";
         }
         final String requestHeader = String.format(
-                "POST %s HTTP/1.1\nHost: %s\nConnection: %s\n%s%sAccept-Encoding: gzip, deflate\n\n",
+                "%s %s HTTP/1.1\nHost: %s\nConnection: %s\n%s%sAccept-Encoding: gzip, deflate\n\n",
+                Method.POST,
                 request,
                 server,
                 isPersistent ? "keep-alive" : "close",
@@ -170,12 +199,13 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
     }
 
     @Override
-    public void optionsWithUrl(String url, HttpListener listener) {
+    public void optionsWithUrl(String path, HttpListener listener) {
         putListener(listener);
-        StringBuilder request = initRequestBuilder(url);
+        StringBuilder request = initRequestBuilder(path);
 
         final String requestHeader = String.format(
-                "OPTIONS %s HTTP/1.1\nHost: %s\n\n",
+                "%s %s HTTP/1.1\nHost: %s\n\n",
+                Method.OPTIONS,
                 request,
                 server);
 
@@ -185,18 +215,35 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
     @Override
     public void options(HttpListener listener) {
         putListener(listener);
-        final String requestHeader = String.format("OPTIONS * HTTP/1.1\nHost: %s\n\n", server);
+        final String requestHeader = String.format("%s * HTTP/1.1\nHost: %s\n\n", Method.OPTIONS, server);
         sendViaTransport(requestHeader);
     }
 
-    private void sendContent(String method,
-                             String url,
+    @Override
+    public void channelError(String message) {
+        httpSession.get().getListener().failure(message);
+        connectId.set(-1);
+        log.log(Level.SEVERE, message);
+    }
+
+    @Override
+    public void chunkIsReceived(byte[] chunk) {
+        httpSession.get().read(chunk);
+    }
+
+    @Override
+    public void close() {
+        connectId.set(-1);
+    }
+
+    void sendContent(String method,
+                             String path,
                              List<Pair<String, String>> additionalHeaders,
                              List<Pair<String, String>> urlParameters,
                              String contentType,
                              Charset contentCharset,
                              byte[] content) {
-        StringBuilder request = initRequestBuilder(url);
+        StringBuilder request = initRequestBuilder(path);
         String contentHeaders = "";
         if (contentType != null && content != null) {
             String charset = contentCharset == null ? "" : "; charset=" + contentCharset.name();
@@ -219,10 +266,12 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
                 contentHeaders);
 
         sendViaTransport(requestHeader);
-        sendViaTransport(content);
+        if (content != null) {
+            sendViaTransport(content);
+        }
     }
 
-    private HttpListener createSessionListener(final HttpListener listener) {
+    HttpListener createSessionListener(final HttpListener listener) {
         return new HttpListener() {
             @Override
             public void responseCode(int code, String httpVersion, String description) {
@@ -263,7 +312,7 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
         };
     }
 
-    private synchronized void putListener(final HttpListener listener) {
+    synchronized void putListener(final HttpListener listener) {
         HttpListener sessionListener = createSessionListener(listener);
         if (!httpSession.compareAndSet(null,
                 new HttpSession(sessionListener, client.getThreadPool()))) {
@@ -271,7 +320,7 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
         }
     }
 
-    private void sendFormData(FormRequestData requestData) {
+    void sendFormData(FormRequestData requestData) {
         if (!requestData.isEmpty()) {
             for (FormField field : requestData.getFields()) {
                 sendViaTransport(String.format("--%s\n%s\n", Boundary.value, field.header()));
@@ -316,9 +365,16 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
     private String encodeParameters(List<Pair<String, String>> parameters) {
         StringBuilder request = new StringBuilder();
 
-        for (Pair<String, String> parameter : parameters) {
+        Iterator<Pair<String, String>> iterator = parameters.iterator();
+        while (iterator.hasNext()) {
+            Pair<String, String> parameter = iterator.next();
             request.append(parameter.getKey()).append("=").append(parameter.getValue());
+
+            if (iterator.hasNext()) {
+                request.append("&");
+            }
         }
+
         return request.toString();
     }
 
@@ -336,23 +392,6 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
     }
 
     // ChannelListener methods
-
-    @Override
-    public void channelError(String message) {
-        httpSession.get().getListener().failure(message);
-        connectId.set(-1);
-        log.log(Level.SEVERE, message);
-    }
-
-    @Override
-    public void chunkIsReceived(byte[] chunk) {
-        httpSession.get().read(chunk);
-    }
-
-    @Override
-    public void close() {
-        connectId.set(-1);
-    }
 
     private static final class Boundary {
         static final String value;
