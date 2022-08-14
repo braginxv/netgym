@@ -69,6 +69,11 @@ public class SequentialConnection implements HttpConnection {
     }
 
     @Override
+    public void delete(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
+        putListener(new DeleteListener(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener));
+    }
+
+    @Override
     public void postContent(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
         putListener(new PostContentListener(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener));
     }
@@ -204,6 +209,32 @@ public class SequentialConnection implements HttpConnection {
         @Override
         void doRequest() {
             httpClient.put(url, additionalHeaders, urlParameters, contentType, contentCharset, content, this);
+        }
+    }
+
+    private class DeleteListener extends ResponseListener {
+        private final String url;
+        private final List<Pair<String, String>> additionalHeaders;
+        private final List<Pair<String, String>> urlParameters;
+        private final String contentType;
+        private final Charset contentCharset;
+        private final byte[] content;
+
+        private DeleteListener(String url, List<Pair<String, String>> additionalHeaders,
+                            List<Pair<String, String>> urlParameters, String contentType,
+                            Charset contentCharset, byte[] content, HttpListener listener) {
+            super(listener);
+            this.url = url;
+            this.additionalHeaders = additionalHeaders;
+            this.urlParameters = urlParameters;
+            this.contentType = contentType;
+            this.contentCharset = contentCharset;
+            this.content = content;
+        }
+
+        @Override
+        void doRequest() {
+            httpClient.delete(url, additionalHeaders, urlParameters, contentType, contentCharset, content, this);
         }
     }
 

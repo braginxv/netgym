@@ -64,6 +64,11 @@ public class SingleConnection implements HttpConnection {
     }
 
     @Override
+    public void delete(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
+        new HttpAsyncClient(server, port, false, asyncClient).delete(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener);
+    }
+
+    @Override
     public void postContent(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
         new HttpAsyncClient(server, port, false, asyncClient).postContent(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener);
     }

@@ -77,6 +77,12 @@ public class PipeliningConnection implements HttpConnection {
     }
 
     @Override
+    public void delete(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
+        httpClient.delete(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener);
+        throttle();
+    }
+
+    @Override
     public void postContent(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
         throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE can support HTTP Pipelining");
     }

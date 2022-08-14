@@ -42,10 +42,10 @@ public class FormField {
      */
     public FormField(String name, byte[] value, String contentType, Charset charset) {
         this.value = value;
-        contentDisposition = "content-disposition: form-data; name=\"" + name + "\"";
+        contentDisposition = "Content-Disposition: form-data; name=\"" + name + "\"";
         if (contentType != null) {
-            contentTypeSpec = "content-type: " + contentType +
-                    (charset != null ? ";charset=" + charset.name() : "");
+            contentTypeSpec = "Content-Type: " + contentType +
+                    (charset != null ? "; charset=" + charset.name() : "");
         }
     }
 

@@ -34,21 +34,24 @@ import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
 import org.techlook.ChannelListener;
 import org.techlook.SocketClient;
+import org.techlook.http.FormRequestData;
 import org.techlook.http.Pair;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
 
 public class TestHttpAsyncClient {
     private static final String SERVER = "server";
     private static final String PATH = "/test/path";
     private static final String CONTENT_TYPE = "text/plain";
+    private static final String BINARY_CONTENT_TYPE = "application/octet-stream";
     private static final int PORT = 1234;
     private static final boolean IS_KEEPALIVE_CONNECTION = true;
     private static final String KEEPALIVE = IS_KEEPALIVE_CONNECTION ? "keep-alive" : "close";
@@ -67,31 +70,45 @@ public class TestHttpAsyncClient {
             new Pair<>("param3", "value3")
     );
 
-    private static final String PARAMETER_PART = "?param1=value1&param2=value2&param3=value3";
+    private static final String ENCODED_PARAMETERS = "param1=value1&param2=value2&param3=value3";
 
     private static byte[] requestHeader(String method) {
-        String headerPart = "Connection: " + KEEPALIVE + "\n" +
-            "User-Agent: test agent\n" +
-            "Header1: value1\n" +
-            "Header2: value2\n" +
-            "Header3: value3\n" +
-            "Accept-Encoding: gzip, deflate";
-
-        return (method + " " + PATH + PARAMETER_PART + " HTTP/1.1\n" +
-                "Host: " + SERVER + "\n" + headerPart + "\n\n").getBytes(StandardCharsets.UTF_8);
-    }
-
-    private static byte[] requestHeader(String method, byte[] content) {
         String headerPart = "Connection: " + KEEPALIVE + "\n" +
                 "User-Agent: test agent\n" +
                 "Header1: value1\n" +
                 "Header2: value2\n" +
                 "Header3: value3\n" +
-                "Content-type: " + CONTENT_TYPE + "; charset=UTF-8\n" +
-                "Content-length: " + content.length + "\n" +
                 "Accept-Encoding: gzip, deflate";
 
-        return (method + " " + PATH + PARAMETER_PART + " HTTP/1.1\n" +
+        return (method + " " + PATH + "?" + ENCODED_PARAMETERS + " HTTP/1.1\n" +
+                "Host: " + SERVER + "\n" + headerPart + "\n\n").getBytes(StandardCharsets.UTF_8);
+    }
+
+    private static byte[] requestHeader(String method, byte[] content, List<Pair<String, String>> headers,
+                                        boolean encodeRequestParameters) {
+        return requestHeader(method, content, headers, encodeRequestParameters, true);
+    }
+
+    private static byte[] requestHeader(String method, byte[] content, List<Pair<String, String>> headers,
+                                        boolean encodeRequestParameters, boolean insertContentLength) {
+        String parametersPart = encodeRequestParameters ? "?" + ENCODED_PARAMETERS : "";
+
+        StringBuilder specifiedHeaders = new StringBuilder();
+        if (headers != null) {
+            for (Pair<String, String> header : headers) {
+                specifiedHeaders
+                        .append(String.format("%s: %s", header.getKey(), header.getValue()))
+                        .append("\n");
+            }
+        }
+
+        String headerPart = "Connection: " + KEEPALIVE + "\n" +
+                specifiedHeaders +
+                (encodeRequestParameters ? "Content-type: " + CONTENT_TYPE + "; charset=UTF-8\n" : "") +
+                (insertContentLength ? "Content-Length: " + content.length + "\n" : "") +
+                "Accept-Encoding: gzip, deflate";
+
+        return (method + " " + PATH + parametersPart + " HTTP/1.1\n" +
                 "Host: " + SERVER + "\n" + headerPart + "\n\n").getBytes(StandardCharsets.UTF_8);
     }
 
@@ -135,7 +152,82 @@ public class TestHttpAsyncClient {
         byte[] content = "test content\nto be sent".getBytes(StandardCharsets.UTF_8);
         http.put(PATH, HEADERS, PARAMETERS, CONTENT_TYPE, StandardCharsets.UTF_8, content, httpListener);
 
-        byte[] data = concat(requestHeader(HttpAsyncClient.Method.PUT, content), content);
+        byte[] data = concat(requestHeader(HttpAsyncClient.Method.PUT, content, HEADERS, true), content);
+        assertTrue(socketClient.checkBuffer(data));
+    }
+
+    @Test
+    public void testDeleteWhenRequestHasNoContent() {
+        http.delete(PATH, HEADERS, PARAMETERS, CONTENT_TYPE, StandardCharsets.UTF_8, null, httpListener);
+
+        byte[] data = requestHeader(HttpAsyncClient.Method.DELETE);
+        assertTrue(socketClient.checkBuffer(data));
+    }
+
+    @Test
+    public void testPostRequest() {
+        byte[] content = "test content\nto be sent".getBytes(StandardCharsets.UTF_8);
+        http.postContent(PATH, HEADERS, PARAMETERS, CONTENT_TYPE, StandardCharsets.UTF_8, content, httpListener);
+
+        byte[] data = concat(requestHeader(HttpAsyncClient.Method.POST, content, HEADERS, true), content);
+        assertTrue(socketClient.checkBuffer(data));
+    }
+
+    @Test
+    public void testPostRequestWithUrlEncodedParameters() {
+        byte[] content = ENCODED_PARAMETERS.getBytes(StandardCharsets.UTF_8);
+        http.postWithEncodedParameters(PATH, HEADERS, PARAMETERS, httpListener);
+
+        List<Pair<String, String>> headers = new LinkedList<>(HEADERS);
+        headers.add(new Pair<>("Content-Type", "application/x-www-form-urlencoded"));
+
+        byte[] data = concat(requestHeader(HttpAsyncClient.Method.POST, content, headers, false), content);
+        assertTrue(socketClient.checkBuffer(data));
+    }
+
+    @Test
+    public void testPostRequestWithFormData() {
+        final String stringField = "string field";
+        final String binaryField = "binary field";
+        final String fileField = "file field";
+        final String fileName = "file_name.txt";
+        final String boundary = HttpAsyncClient.Boundary.value;
+
+        final String stringData = "string value";
+        final byte[] binaryData = new byte[]{0x01, 0x02, 0x03, 0x04, 0x05};
+        final byte[] fileData = new byte[]{0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d};
+
+        FormRequestData formData = new FormRequestData();
+        formData.addInputField(stringField, stringData, CONTENT_TYPE, StandardCharsets.UTF_8);
+        formData.addInputField(binaryField, binaryData, BINARY_CONTENT_TYPE, null);
+        formData.addFileField(fileField, fileName, fileData, BINARY_CONTENT_TYPE, null);
+
+        http.postFormData(PATH, HEADERS, formData, httpListener);
+
+        List<Pair<String, String>> headers = new LinkedList<>(HEADERS);
+        headers.add(new Pair<>("Content-Type", "multipart/form-data;boundary=\""
+                + boundary + "\""));
+
+        byte[] stringPartContent = ("--" + boundary + "\n" +
+                "Content-Disposition: form-data; name=\"" + stringField + "\"\n" +
+                "Content-Type: " + CONTENT_TYPE + "; charset=UTF-8" + "\n\n" +
+                stringData + "\n").getBytes(StandardCharsets.UTF_8);
+
+        byte[] binaryPartContent = concat(("--" + boundary + "\n" +
+                        "Content-Disposition: form-data; name=\"" + binaryField + "\"\n" +
+                        "Content-Type: " + BINARY_CONTENT_TYPE + "\n\n").getBytes(StandardCharsets.UTF_8),
+                concat(binaryData, "\n".getBytes(StandardCharsets.UTF_8)));
+
+        byte[] filePartContent = concat(("--" + boundary + "\n" +
+                        "Content-Disposition: form-data; name=\"" + fileField + "\"" +
+                        "; filename=\"" + fileName + "\"\n" +
+                        "Content-Type: " + BINARY_CONTENT_TYPE + "\n\n").getBytes(StandardCharsets.UTF_8),
+                concat(fileData, ("\n--" + boundary + "\n").getBytes(StandardCharsets.UTF_8)));
+
+        byte[] content = concat(concat(stringPartContent, binaryPartContent), filePartContent);
+
+        byte[] data = concat(requestHeader(HttpAsyncClient.Method.POST, content, headers,
+                false, false), content);
         assertTrue(socketClient.checkBuffer(data));
     }
 

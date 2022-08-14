@@ -52,7 +52,7 @@ import java.util.logging.Logger;
 public class HttpAsyncClient implements HttpConnection, ChannelListener {
     public static final class Method {
         public static final String GET = "GET";
-        public static final String PUT = "GET";
+        public static final String PUT = "PUT";
         public static final String DELETE = "DELETE";
         public static final String OPTIONS = "OPTIONS";
         public static final String POST = "POST";
@@ -186,7 +186,7 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
             formFieldsHeader = "Content-Type: multipart/form-data;boundary=\"" + Boundary.value + "\"\n";
         }
         final String requestHeader = String.format(
-                "%s %s HTTP/1.1\nHost: %s\nConnection: %s\n%s%sAccept-Encoding: gzip, deflate\n\n",
+                "%s %s HTTP/1.1\nHost: %s\nConnection: %s\n%s%sAccept-Encoding: gzip, deflate\n",
                 Method.POST,
                 request,
                 server,
@@ -247,7 +247,7 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
         String contentHeaders = "";
         if (contentType != null && content != null) {
             String charset = contentCharset == null ? "" : "; charset=" + contentCharset.name();
-            contentHeaders = String.format("Content-type: %s%s\nContent-length: %d",
+            contentHeaders = String.format("Content-type: %s%s\nContent-Length: %d\n",
                     contentType, charset, content.length);
         }
 
@@ -257,7 +257,7 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
         }
 
         final String requestHeader = String.format(
-                "%s %s HTTP/1.1\nHost: %s\nConnection: %s\n%s%s\nAccept-Encoding: gzip, deflate\n\n",
+                "%s %s HTTP/1.1\nHost: %s\nConnection: %s\n%s%sAccept-Encoding: gzip, deflate\n\n",
                 method,
                 request,
                 server,
@@ -323,10 +323,10 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
     void sendFormData(FormRequestData requestData) {
         if (!requestData.isEmpty()) {
             for (FormField field : requestData.getFields()) {
-                sendViaTransport(String.format("--%s\n%s\n", Boundary.value, field.header()));
+                sendViaTransport(String.format("\n--%s\n%s\n", Boundary.value, field.header()));
                 sendViaTransport(field.body());
-                sendViaTransport(String.format("\n--%s\n", Boundary.value));
             }
+            sendViaTransport(String.format("\n--%s\n", Boundary.value));
         }
     }
 
@@ -393,7 +393,7 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
 
     // ChannelListener methods
 
-    private static final class Boundary {
+    static final class Boundary {
         static final String value;
 
         static {
