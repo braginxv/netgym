@@ -85,7 +85,7 @@ public class ChannelBundle {
                     respond(readBuffer);
                 }
             } catch (IOException e) {
-                closeChannel(channel);
+                hasBeenClosed.set(true);
                 listener.channelError(Fault.AsyncClientChannelReadError.getDescription());
 
                 return;
@@ -137,7 +137,7 @@ public class ChannelBundle {
 
     void closeChannel(Channel channel) {
         try {
-            channel.close();
+            if (channel.isOpen()) channel.close();
         } catch (IOException e) {
             listener.channelError(Fault.AsyncClientChannelClosingError.format(e.getMessage()));
         } finally {

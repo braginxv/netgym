@@ -28,6 +28,7 @@ import org.techlook.http.client.HttpListener;
 
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Base interface comprises http methods. All methods are supposed to be asynchronous. Connecting to the remote server
@@ -45,8 +46,8 @@ public interface HttpConnection {
      * @param listener           HTTP listener
      */
     void get(String url,
-             List<Pair<String, String>> additionalHeaders,
-             List<Pair<String, String>> parameters,
+             Set<Pair<String, String>> additionalHeaders,
+             Set<Pair<String, String>> parameters,
              HttpListener listener);
 
     /**
@@ -60,8 +61,8 @@ public interface HttpConnection {
      * @param listener           HTTP listener
      */
     void put(String url,
-             List<Pair<String, String>> additionalHeaders,
-             List<Pair<String, String>> urlParameters,
+             Set<Pair<String, String>> additionalHeaders,
+             Set<Pair<String, String>> urlParameters,
              String contentType,
              Charset contentCharset,
              byte[] content,
@@ -78,8 +79,8 @@ public interface HttpConnection {
      * @param listener           HTTP listener
      */
     void delete(String url,
-             List<Pair<String, String>> additionalHeaders,
-             List<Pair<String, String>> urlParameters,
+             Set<Pair<String, String>> additionalHeaders,
+             Set<Pair<String, String>> urlParameters,
              String contentType,
              Charset contentCharset,
              byte[] content,
@@ -96,8 +97,8 @@ public interface HttpConnection {
      * @param listener           HTTP listener
      */
     void postContent(String url,
-                     List<Pair<String, String>> additionalHeaders,
-                     List<Pair<String, String>> urlParameters,
+                     Set<Pair<String, String>> additionalHeaders,
+                     Set<Pair<String, String>> urlParameters,
                      String contentType,
                      Charset contentCharset,
                      byte[] content,
@@ -111,8 +112,8 @@ public interface HttpConnection {
      * @param listener           HTTP listener
      */
     void postWithEncodedParameters(String url,
-                                   List<Pair<String, String>> additionalHeaders,
-                                   List<Pair<String, String>> parameters,
+                                   Set<Pair<String, String>> additionalHeaders,
+                                   Set<Pair<String, String>> parameters,
                                    HttpListener listener);
 
     /**
@@ -123,7 +124,7 @@ public interface HttpConnection {
      * @param listener           HTTP listener
      */
     void postFormData(String url,
-                      List<Pair<String, String>> additionalHeaders,
+                      Set<Pair<String, String>> additionalHeaders,
                       FormRequestData requestData,
                       HttpListener listener);
 

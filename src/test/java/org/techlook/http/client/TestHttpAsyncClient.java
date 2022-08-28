@@ -40,9 +40,7 @@ import org.techlook.http.Pair;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
@@ -57,18 +55,18 @@ public class TestHttpAsyncClient {
     private static final String KEEPALIVE = IS_KEEPALIVE_CONNECTION ? "keep-alive" : "close";
     private static final int CHANNEL_ID = 12345;
 
-    private static final List<Pair<String, String>> HEADERS = Arrays.asList(
+    private static final Set<Pair<String, String>> HEADERS = new LinkedHashSet<>(Arrays.asList(
             new Pair<>("User-Agent", "test agent"),
             new Pair<>("Header1", "value1"),
             new Pair<>("Header2", "value2"),
             new Pair<>("Header3", "value3")
-    );
+    ));
 
-    private static final List<Pair<String, String>> PARAMETERS = Arrays.asList(
+    private static final Set<Pair<String, String>> PARAMETERS = new LinkedHashSet<>(Arrays.asList(
             new Pair<>("param1", "value1"),
             new Pair<>("param2", "value2"),
             new Pair<>("param3", "value3")
-    );
+    ));
 
     private static final String ENCODED_PARAMETERS = "param1=value1&param2=value2&param3=value3";
 
@@ -84,12 +82,12 @@ public class TestHttpAsyncClient {
                 "Host: " + SERVER + "\n" + headerPart + "\n\n").getBytes(StandardCharsets.UTF_8);
     }
 
-    private static byte[] requestHeader(String method, byte[] content, List<Pair<String, String>> headers,
+    private static byte[] requestHeader(String method, byte[] content, Set<Pair<String, String>> headers,
                                         boolean encodeRequestParameters) {
         return requestHeader(method, content, headers, encodeRequestParameters, true);
     }
 
-    private static byte[] requestHeader(String method, byte[] content, List<Pair<String, String>> headers,
+    private static byte[] requestHeader(String method, byte[] content, Set<Pair<String, String>> headers,
                                         boolean encodeRequestParameters, boolean insertContentLength) {
         String parametersPart = encodeRequestParameters ? "?" + ENCODED_PARAMETERS : "";
 
@@ -178,7 +176,7 @@ public class TestHttpAsyncClient {
         byte[] content = ENCODED_PARAMETERS.getBytes(StandardCharsets.UTF_8);
         http.postWithEncodedParameters(PATH, HEADERS, PARAMETERS, httpListener);
 
-        List<Pair<String, String>> headers = new LinkedList<>(HEADERS);
+        Set<Pair<String, String>> headers = new LinkedHashSet<>(HEADERS);
         headers.add(new Pair<>("Content-Type", "application/x-www-form-urlencoded"));
 
         byte[] data = concat(requestHeader(HttpAsyncClient.Method.POST, content, headers, false), content);
@@ -204,7 +202,7 @@ public class TestHttpAsyncClient {
 
         http.postFormData(PATH, HEADERS, formData, httpListener);
 
-        List<Pair<String, String>> headers = new LinkedList<>(HEADERS);
+        Set<Pair<String, String>> headers = new LinkedHashSet<>(HEADERS);
         headers.add(new Pair<>("Content-Type", "multipart/form-data;boundary=\""
                 + boundary + "\""));
 

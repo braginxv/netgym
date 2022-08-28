@@ -29,7 +29,7 @@ import org.techlook.http.client.HttpAsyncClient;
 import org.techlook.http.client.HttpListener;
 
 import java.nio.charset.Charset;
-import java.util.List;
+import java.util.Set;
 
 /**
  * This is the most advanced and performance kind of HTTP/1.1 client using HTTP pipelining.
@@ -37,7 +37,7 @@ import java.util.List;
  * therefore it is recommended to send requests with slight delays.
  */
 public class PipeliningConnection implements HttpConnection {
-    public static final long DEFAULT_SENDING_INTERVAL = 0;
+    public static final long DEFAULT_SENDING_INTERVAL = 50;
 
     private final HttpAsyncClient httpClient;
     private final long sendingTimeInterval;
@@ -65,35 +65,35 @@ public class PipeliningConnection implements HttpConnection {
     }
 
     @Override
-    public synchronized void get(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> parameters, HttpListener listener) {
+    public synchronized void get(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
         httpClient.get(url, additionalHeaders, parameters, listener);
         throttle();
     }
 
     @Override
-    public synchronized void put(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
+    public synchronized void put(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
         httpClient.put(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener);
         throttle();
     }
 
     @Override
-    public void delete(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
+    public void delete(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
         httpClient.delete(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener);
         throttle();
     }
 
     @Override
-    public void postContent(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
+    public void postContent(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
         throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE can support HTTP Pipelining");
     }
 
     @Override
-    public void postWithEncodedParameters(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> parameters, HttpListener listener) {
+    public void postWithEncodedParameters(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
         throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE can support HTTP Pipelining");
     }
 
     @Override
-    public void postFormData(String url, List<Pair<String, String>> additionalHeaders, FormRequestData requestData, HttpListener listener) {
+    public void postFormData(String url, Set<Pair<String, String>> additionalHeaders, FormRequestData requestData, HttpListener listener) {
         throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE can support HTTP Pipelining");
     }
 

@@ -5,17 +5,16 @@ Among TCP features it supports secure socket connections (TLS), HTTP/1.1, includ
 
 1. Rest methods GET, POST (with arbitrary content, url-encoded, form-data), PUT, DELETE, OPTIONS
 1. Diverse HTTP/1.1 connections: Single/Closable (per request), Keep-alive and Pipelining.
-1. HTTPS over TLS connections using the latest version of TLS available on running JVM and coordinating with the remote
-   server.
+1. HTTPS over TLS connections using the latest version of TLS available on running JVM.
 
 The basic feature is that the only one instance of client used to serve all socket-based connections and built on
 limited thread pool. Furthermore, different stages or operations of one connection can perform parallel on the same
-thread pool. This pool so-called fork-join thread pool provides large number of parallel operations over the small
+thread pool. This so-called fork-join thread pool provides large number of parallel operations over small
 number of threads.
 
 ![Thread model](images/netgym_thread_model.png)
 
-As it is shown above, the following operations are executing parallel allowing to increase a performance:
+As it is shown above, the following operations execute in parallel increasing performance:
 
 1. Response data decryption (using TLS)
 1. Gzip/deflate uncompressing of a response content
@@ -35,20 +34,20 @@ If you use Maven then insert the following
 <dependency>
     <groupId>com.github.braginxv</groupId>
     <artifactId>netgym</artifactId>
-    <version>0.6-beta</version>
+    <version>0.6</version>
 </dependency>
 ```
 
 In case of using Gradle
 
 ```groovy
-implementation 'com.github.braginxv:netgym:0.6-beta'
+implementation 'com.github.braginxv:netgym:0.6'
 ```
 
 To add to a scala project use the following
 
 ```scala
-libraryDependencies += "com.github.braginxv" % "netgym" % "0.6-beta"
+libraryDependencies += "com.github.braginxv" % "netgym" % "0.6"
 ```
 
 ## Typical usage
@@ -166,8 +165,8 @@ The client supports following connections for HTTP/1.1
    Similar to Persistent connections the Pipelining connection is used to sending multiple requests, but it isn't
    waiting the response from previous request to send a new one, hence this connection is faster than the persistent
    connection. In spite of Pipelining connections are the part of standard HTTP/1.1 they may not be supported or
-   supported partially by many servers.
+   may be supported partially by many servers.
 4. `httpRequestBuilder.configurePipeliningConnection(TIME_DELAY_BETWEEN_REQUEST_SENDING)`
-   Sometimes a remote server cannot process multiple requests sent all at once in Pipelining connection, but it could do that if
-   requests were sent with little delay. Invoke this method to use Pipelining connection and specify delay in ms between
+   Sometimes a remote server cannot process multiple requests sent all at once in Pipelining connection, but it could be done in this way if
+   requests were sent with a little delay. Invoke this method to use Pipelining connection and specify delay in ms between
    requests being sent.

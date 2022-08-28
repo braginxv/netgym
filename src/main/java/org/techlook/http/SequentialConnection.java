@@ -31,6 +31,7 @@ import org.techlook.http.client.HttpListener;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -59,32 +60,32 @@ public class SequentialConnection implements HttpConnection {
     }
 
     @Override
-    public void get(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> parameters, HttpListener listener) {
+    public void get(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
         putListener(new GetListener(url, additionalHeaders, parameters, listener));
     }
 
     @Override
-    public void put(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
+    public void put(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
         putListener(new PutListener(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener));
     }
 
     @Override
-    public void delete(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
+    public void delete(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
         putListener(new DeleteListener(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener));
     }
 
     @Override
-    public void postContent(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
+    public void postContent(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
         putListener(new PostContentListener(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener));
     }
 
     @Override
-    public void postWithEncodedParameters(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> parameters, HttpListener listener) {
+    public void postWithEncodedParameters(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
         putListener(new PostWithEncodedParametersListener(url, additionalHeaders, parameters, listener));
     }
 
     @Override
-    public void postFormData(String url, List<Pair<String, String>> additionalHeaders, FormRequestData requestData, HttpListener listener) {
+    public void postFormData(String url, Set<Pair<String, String>> additionalHeaders, FormRequestData requestData, HttpListener listener) {
         putListener(new PostFormDataListener(url, additionalHeaders, requestData, listener));
     }
 
@@ -168,12 +169,12 @@ public class SequentialConnection implements HttpConnection {
 
     private class GetListener extends ResponseListener {
         private final String url;
-        private final List<Pair<String, String>> additionalHeaders;
-        private final List<Pair<String, String>> parameters;
+        private final Set<Pair<String, String>> additionalHeaders;
+        private final Set<Pair<String, String>> parameters;
 
         private GetListener(String url,
-                            List<Pair<String, String>> additionalHeaders,
-                            List<Pair<String, String>> parameters, HttpListener listener) {
+                            Set<Pair<String, String>> additionalHeaders,
+                            Set<Pair<String, String>> parameters, HttpListener listener) {
             super(listener);
             this.url = url;
             this.additionalHeaders = additionalHeaders;
@@ -188,14 +189,14 @@ public class SequentialConnection implements HttpConnection {
 
     private class PutListener extends ResponseListener {
         private final String url;
-        private final List<Pair<String, String>> additionalHeaders;
-        private final List<Pair<String, String>> urlParameters;
+        private final Set<Pair<String, String>> additionalHeaders;
+        private final Set<Pair<String, String>> urlParameters;
         private final String contentType;
         private final Charset contentCharset;
         private final byte[] content;
 
-        private PutListener(String url, List<Pair<String, String>> additionalHeaders,
-                            List<Pair<String, String>> urlParameters, String contentType,
+        private PutListener(String url, Set<Pair<String, String>> additionalHeaders,
+                            Set<Pair<String, String>> urlParameters, String contentType,
                             Charset contentCharset, byte[] content, HttpListener listener) {
             super(listener);
             this.url = url;
@@ -214,14 +215,14 @@ public class SequentialConnection implements HttpConnection {
 
     private class DeleteListener extends ResponseListener {
         private final String url;
-        private final List<Pair<String, String>> additionalHeaders;
-        private final List<Pair<String, String>> urlParameters;
+        private final Set<Pair<String, String>> additionalHeaders;
+        private final Set<Pair<String, String>> urlParameters;
         private final String contentType;
         private final Charset contentCharset;
         private final byte[] content;
 
-        private DeleteListener(String url, List<Pair<String, String>> additionalHeaders,
-                            List<Pair<String, String>> urlParameters, String contentType,
+        private DeleteListener(String url, Set<Pair<String, String>> additionalHeaders,
+                            Set<Pair<String, String>> urlParameters, String contentType,
                             Charset contentCharset, byte[] content, HttpListener listener) {
             super(listener);
             this.url = url;
@@ -241,14 +242,14 @@ public class SequentialConnection implements HttpConnection {
 
     private class PostContentListener extends ResponseListener {
         private final String url;
-        private final List<Pair<String, String>> additionalHeaders;
-        private final List<Pair<String, String>> urlParameters;
+        private final Set<Pair<String, String>> additionalHeaders;
+        private final Set<Pair<String, String>> urlParameters;
         private final String contentType;
         private final Charset contentCharset;
         private final byte[] content;
 
-        private PostContentListener(String url, List<Pair<String, String>> additionalHeaders,
-                                    List<Pair<String, String>> urlParameters, String contentType,
+        private PostContentListener(String url, Set<Pair<String, String>> additionalHeaders,
+                                    Set<Pair<String, String>> urlParameters, String contentType,
                                     Charset contentCharset, byte[] content, HttpListener listener) {
             super(listener);
             this.url = url;
@@ -267,11 +268,11 @@ public class SequentialConnection implements HttpConnection {
 
     private class PostWithEncodedParametersListener extends ResponseListener {
         private final String url;
-        private final List<Pair<String, String>> additionalHeaders;
-        private final List<Pair<String, String>> parameters;
+        private final Set<Pair<String, String>> additionalHeaders;
+        private final Set<Pair<String, String>> parameters;
 
-        private PostWithEncodedParametersListener(String url, List<Pair<String, String>> additionalHeaders,
-                                                  List<Pair<String, String>> parameters, HttpListener listener) {
+        private PostWithEncodedParametersListener(String url, Set<Pair<String, String>> additionalHeaders,
+                                                  Set<Pair<String, String>> parameters, HttpListener listener) {
             super(listener);
             this.url = url;
             this.additionalHeaders = additionalHeaders;
@@ -287,10 +288,10 @@ public class SequentialConnection implements HttpConnection {
 
     private class PostFormDataListener extends ResponseListener {
         private final String url;
-        private final List<Pair<String, String>> additionalHeaders;
+        private final Set<Pair<String, String>> additionalHeaders;
         private final FormRequestData requestData;
 
-        private PostFormDataListener(String url, List<Pair<String, String>> additionalHeaders,
+        private PostFormDataListener(String url, Set<Pair<String, String>> additionalHeaders,
                                      FormRequestData requestData, HttpListener listener) {
             super(listener);
             this.url = url;

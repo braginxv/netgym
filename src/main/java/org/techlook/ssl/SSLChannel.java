@@ -33,6 +33,7 @@ import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.locks.ReentrantLock;
 
 class SSLChannel extends AbstractSSLAction implements ChannelListener {
     private final OutgoingAction outgoing;
@@ -40,7 +41,6 @@ class SSLChannel extends AbstractSSLAction implements ChannelListener {
     private volatile ByteBuffer incomingNetData;
     private volatile ByteBuffer incomingAppData;
     private volatile ByteBuffer residueChunk;
-    private volatile boolean shouldCloseChannel = false;
 
 
     public SSLChannel(final SSLEngine engine,
@@ -204,8 +204,11 @@ class SSLChannel extends AbstractSSLAction implements ChannelListener {
 
     private void pullIncomingChunks() {
         int packetBufferSize = engine.getSession().getPacketBufferSize();
-        if (incomingNetData.capacity() < packetBufferSize) {
-            incomingNetData = enlargeBuffer(incomingNetData, packetBufferSize);
+
+        synchronized(this) {
+            if (incomingNetData.capacity() < packetBufferSize) {
+                incomingNetData = enlargeBuffer(incomingNetData, packetBufferSize);
+            }
         }
 
         if (residueChunk != null) {
@@ -238,7 +241,7 @@ class SSLChannel extends AbstractSSLAction implements ChannelListener {
         }
     }
 
-    private void enlargeAppBuffer() {
+    private synchronized void enlargeAppBuffer() {
         incomingAppData = enlargeBuffer(incomingAppData, engine.getSession().getApplicationBufferSize());
     }
 
