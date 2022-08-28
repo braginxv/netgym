@@ -33,6 +33,8 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ForkJoinPool;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Base class for all SSL operations (handshaking, incoming data, outgoing data) providing asynchronous (non-blocking)
@@ -42,19 +44,22 @@ abstract class AbstractSSLAction extends AsyncAction {
     protected final SocketClient transport;
     protected final SSLEngine engine;
     protected final ChannelListener listener;
+    protected final AsyncAction hostAction;
     protected Integer channelId;
 
     /**
      * @param engine      The SSLEngine itself
      * @param listener    listener of channel's events
-     * @param threadPool  common library
+     * @param threadPool  shared
      * @param transport   TCP or UDP transport
      */
-    AbstractSSLAction(SSLEngine engine, ChannelListener listener, ForkJoinPool threadPool, SocketClient transport) {
+    AbstractSSLAction(SSLEngine engine, ChannelListener listener, ForkJoinPool threadPool, SocketClient transport,
+                      AsyncAction hostAction) {
         super(threadPool);
         this.engine = engine;
         this.listener = listener;
         this.transport = transport;
+        this.hostAction = hostAction;
     }
 
     /**
@@ -62,8 +67,8 @@ abstract class AbstractSSLAction extends AsyncAction {
      */
     protected boolean isHandshakingDone() {
         SSLEngineResult.HandshakeStatus handshakeStatus = engine.getHandshakeStatus();
-        return handshakeStatus == SSLEngineResult.HandshakeStatus.FINISHED ||
-                handshakeStatus == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING;
+        return engine.getSession().isValid() && (handshakeStatus == SSLEngineResult.HandshakeStatus.FINISHED ||
+                handshakeStatus == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING);
     }
 
     /**
@@ -80,7 +85,7 @@ abstract class AbstractSSLAction extends AsyncAction {
     /**
      * increasing buffer size when BUFFER_OVERFLOW message did receive
      * @param buffer the buffer to be enlarged
-     * @param size   if new size is known and it larger than old buffer size it is used
+     * @param size   if new size is known and larger than old buffer size it is used
      *                 otherwise buffer will be increased in two times
      * @return       enlarged buffer
      */
@@ -95,5 +100,10 @@ abstract class AbstractSSLAction extends AsyncAction {
 
     void setChannelId(Integer channelId) {
         this.channelId = channelId;
+    }
+
+    void logAction(String message) {
+        Logger.getLogger("SSLAction").log(Level.INFO,
+                String.format("[%s %d] %s", getClass().getSimpleName(), channelId, message));
     }
 }

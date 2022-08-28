@@ -103,10 +103,11 @@ public class SSLChannelTest {
     }
 
     @Before
-    public void standUp() {
+    public void standUp() throws SSLException {
         when(sslEngine.getSession()).thenReturn(sslSession);
         when(sslSession.getApplicationBufferSize()).thenReturn(SSL_APP_BUFFER_SIZE);
         when(sslSession.getPacketBufferSize()).thenReturn(SSL_PACKET_BUFFER_SIZE);
+        when(sslSession.isValid()).thenReturn(true);
         when(sslEngine.getHandshakeStatus()).thenReturn(SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING);
         channelSink = new WritableChannelSink();
         sslChannel = new SSLChannel(sslEngine, channelSink, threadPool, socketClient);

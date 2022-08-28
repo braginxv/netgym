@@ -24,6 +24,8 @@
 
 package org.techlook.http;
 
+import java.util.Objects;
+
 /**
  * Its a simple class to aggregate key-value pair
  */
@@ -42,5 +44,20 @@ public class Pair<K, V> {
 
     public V getValue() {
         return value;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(key.hashCode(), value.hashCode());
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof Pair) {
+            Pair<?, ?> otherPair = (Pair<?, ?>) other;
+            return getKey().equals(otherPair.getKey()) && getValue().equals(otherPair.getValue());
+        }
+
+        return false;
     }
 }

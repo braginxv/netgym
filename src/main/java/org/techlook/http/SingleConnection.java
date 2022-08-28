@@ -30,6 +30,7 @@ import org.techlook.http.client.HttpListener;
 
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Single connection supposes each HTTP request opens and closes one TCP connection. This type of HTTP client should
@@ -54,32 +55,32 @@ public class SingleConnection implements HttpConnection {
     }
 
     @Override
-    public void get(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> parameters, HttpListener listener) {
+    public void get(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
         new HttpAsyncClient(server, port, false, asyncClient).get(url, additionalHeaders, parameters, listener);
     }
 
     @Override
-    public void put(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
+    public void put(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
         new HttpAsyncClient(server, port, false, asyncClient).put(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener);
     }
 
     @Override
-    public void delete(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
+    public void delete(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
         new HttpAsyncClient(server, port, false, asyncClient).delete(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener);
     }
 
     @Override
-    public void postContent(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
+    public void postContent(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
         new HttpAsyncClient(server, port, false, asyncClient).postContent(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener);
     }
 
     @Override
-    public void postWithEncodedParameters(String url, List<Pair<String, String>> additionalHeaders, List<Pair<String, String>> parameters, HttpListener listener) {
+    public void postWithEncodedParameters(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
         new HttpAsyncClient(server, port, false, asyncClient).postWithEncodedParameters(url, additionalHeaders, parameters, listener);
     }
 
     @Override
-    public void postFormData(String url, List<Pair<String, String>> additionalHeaders, FormRequestData requestData, HttpListener listener) {
+    public void postFormData(String url, Set<Pair<String, String>> additionalHeaders, FormRequestData requestData, HttpListener listener) {
         new HttpAsyncClient(server, port, false, asyncClient).postFormData(url, additionalHeaders, requestData, listener);
     }
 

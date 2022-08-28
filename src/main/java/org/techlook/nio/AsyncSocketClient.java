@@ -56,7 +56,6 @@ public class AsyncSocketClient implements SocketClient {
     private volatile Future<?> await;
     private volatile boolean dispatched = false;
 
-
     private AsyncSocketClient(Selector selector) {
         this.selector = selector;
     }
@@ -92,8 +91,10 @@ public class AsyncSocketClient implements SocketClient {
         transportChannel.createAndConnect(selector, channelBundle, server);
         channels.put(sequenceNumber, channelBundle);
 
-        if (!dispatched) {
-            dispatch();
+        synchronized (this) {
+            if (!dispatched) {
+                dispatch();
+            }
         }
 
         return sequenceNumber;
@@ -121,6 +122,18 @@ public class AsyncSocketClient implements SocketClient {
     public synchronized void close(int channel) {
         channels.remove(channel).close();
         selector.wakeup();
+    }
+
+    @Override
+    public void awaitTerminating() throws ExecutionException, InterruptedException {
+        if (await != null) {
+            await.get();
+        }
+    }
+
+    @Override
+    public ForkJoinPool getThreadPool() {
+        return threadPool;
     }
 
     private void dispatch() {
@@ -165,28 +178,21 @@ public class AsyncSocketClient implements SocketClient {
                             }
                         }
                     }
-                    selector.close();
-                    completion.finish();
                 } catch (Exception e) {
+                    e.printStackTrace();
                     String message = e.getMessage() != null ? e.getMessage() : e.toString();
                     completion.failure(Fault.AsyncClientError.format(message));
+                } finally {
+                    try {
+                        selector.close();
+                    } catch (IOException ignored) {
+                    }
+                    completion.finish();
                 }
             }
         };
 
         await = threadPool.submit(scanning);
         dispatched = true;
-    }
-
-    @Override
-    public void awaitTerminating() throws ExecutionException, InterruptedException {
-        if (await != null) {
-            await.get();
-        }
-    }
-
-    @Override
-    public ForkJoinPool getThreadPool() {
-        return threadPool;
     }
 }

@@ -24,6 +24,7 @@
 
 package org.techlook.ssl;
 
+import org.techlook.AsyncAction;
 import org.techlook.ChannelListener;
 import org.techlook.SocketClient;
 
@@ -35,14 +36,14 @@ import java.util.concurrent.ForkJoinPool;
 
 class OutgoingAction extends AbstractSSLAction {
     protected final SSLEngine engine;
-    protected final ByteBuffer outgoingAppData;
+    protected ByteBuffer outgoingAppData;
 
     protected volatile ByteBuffer outgoingNetData;
     protected volatile ByteBuffer residueChunk;
 
     public OutgoingAction(SSLEngine engine,
-                          ChannelListener listener, ForkJoinPool threadPool, SocketClient transport) {
-        super(engine, listener, threadPool, transport);
+                          ChannelListener listener, ForkJoinPool threadPool, SocketClient transport, AsyncAction hostAction) {
+        super(engine, listener, threadPool, transport, hostAction);
         this.engine = engine;
         outgoingAppData = ByteBuffer.allocate(engine.getSession().getApplicationBufferSize());
         outgoingNetData = ByteBuffer.allocate(engine.getSession().getPacketBufferSize());
@@ -52,6 +53,7 @@ class OutgoingAction extends AbstractSSLAction {
     @Override
     protected void processAction() {
         if (!isHandshakingDone()) {
+            hostAction.shakeUp();
             return;
         }
 
@@ -72,6 +74,8 @@ class OutgoingAction extends AbstractSSLAction {
                 return;
             }
             try {
+                logAction(engine.getHandshakeStatus().toString());
+                logAction(engine.getSession().getCipherSuite());
                 handleWrap(engine.wrap(outgoingAppData, outgoingNetData));
             } catch (SSLException e) {
                 closeOnError(e);

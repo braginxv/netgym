@@ -46,51 +46,51 @@ public abstract class AsyncAction implements Callable<Void> {
      */
     protected final ConcurrentLinkedQueue<ByteBuffer> chunks = new ConcurrentLinkedQueue<>();
 
-    private final AtomicBoolean isItInitialStart = new AtomicBoolean(true);
     private final AtomicBoolean shouldContinue = new AtomicBoolean();
     private final ForkJoinPool pool;
     private volatile ForkJoinTask<Void> completionTask;
-    private final Object lock = new Object();
 
     /**
      * Creation
+     *
      * @param pool Common ForkJoinPoll withing client
      */
     public AsyncAction(ForkJoinPool pool) {
         this.pool = pool;
+
+        completionTask = new RecursiveAction() {
+            @Override
+            protected void compute() {
+            }
+        };
+        completionTask.complete(null);
     }
 
     /**
-     * Wake up that action to process next bunch of chunks if it has completed and now isn't running.
-     * If chunks queue exceeds set max limit and processing the previous portion of chunks hasn't been processed yet
+     * Wake up action to process next bunch of chunks if current portion has been processed.
+     * If chunks queue size exceeds max limit and processing of the previous portion of chunks hasn't been processed yet
      * then current thread waits completion of the previous task using the work stealing algorithm in Fork Join Pool
+     *
      * @see ForkJoinPool
      */
     public void shakeUp() {
         shouldContinue.set(true);
-        if (isItInitialStart.getAndSet(false)) {
-            completionTask = pool.submit(this);
-            return;
-        }
 
-        if (chunks.size() > MAX_QUEUE_FILL || completionTask.isDone()) {
-            synchronized (lock) {
-                if (chunks.size() > MAX_QUEUE_FILL || completionTask.isDone()) {
-                    try {
-                        completionTask.get();
-                    } catch (InterruptedException ignored) {
-                    } catch (ExecutionException e) {
-                        throw new RuntimeException(e.getCause());
-                    }
-                    shouldContinue.set(false);
-                    completionTask = pool.submit(this);
-                }
+        if (completionTask.isDone() || chunks.size() > MAX_QUEUE_FILL) {
+            try {
+                completionTask.get();
+            } catch (InterruptedException ignored) {
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e.getMessage());
             }
+            shouldContinue.set(false);
+            completionTask = pool.submit(this);
         }
     }
 
     /**
-     * used by Thread Pool to fork new processing task
+     * used by Thread Pool to fork new processing
+     *
      * @return nothing
      */
     @Override
@@ -102,7 +102,7 @@ public abstract class AsyncAction implements Callable<Void> {
     }
 
     /**
-     * blocks current thread until all remaining chunks to be processed
+     * blocks current thread until all remaining chunks are processed
      */
     public void waitFinishing() {
         if (completionTask != null) {
@@ -113,8 +113,9 @@ public abstract class AsyncAction implements Callable<Void> {
     }
 
     /**
-     * test whether last processing task has been completed
-     * @return true if last processing task has been completed
+     * test whether the last processing task has been completed
+     *
+     * @return true if the last processing task has been completed
      */
     public boolean isTaskCompleted() {
         return completionTask == null || completionTask.isDone();

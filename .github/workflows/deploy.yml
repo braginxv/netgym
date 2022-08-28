@@ -2,11 +2,12 @@ name: Maven Package
 
 on:
   pull_request:
-    tags: [v*]
+    types: closed
+    branches: master
 
 jobs:
   build:
-
+    if: github.event.pull_request.merged
     runs-on: ubuntu-latest
 
     steps:

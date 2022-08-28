@@ -40,17 +40,16 @@ class SSLChannel extends AbstractSSLAction implements ChannelListener {
     private volatile ByteBuffer incomingNetData;
     private volatile ByteBuffer incomingAppData;
     private volatile ByteBuffer residueChunk;
-    private volatile boolean shouldCloseChannel = false;
 
 
     public SSLChannel(final SSLEngine engine,
                       final ChannelListener listener, final ForkJoinPool threadPool, final SocketClient transport) {
-        super(engine, listener, threadPool, transport);
+        super(engine, listener, threadPool, transport, null);
 
         incomingNetData = ByteBuffer.allocate(engine.getSession().getPacketBufferSize());
         incomingAppData = ByteBuffer.allocate(engine.getSession().getApplicationBufferSize());
-        outgoing = new OutgoingAction(engine, listener, threadPool, transport);
-        outgoingHandshakingAction = new OutgoingHandshakingAction(engine, listener, threadPool, transport);
+        outgoing = new OutgoingAction(engine, this, threadPool, transport, this);
+        outgoingHandshakingAction = new OutgoingHandshakingAction(engine, this, threadPool, transport, this);
     }
 
     @Override
@@ -145,6 +144,10 @@ class SSLChannel extends AbstractSSLAction implements ChannelListener {
                     case NEED_TASK:
                         dispatchBlockingTasks();
                         break;
+                    case NOT_HANDSHAKING:
+                        engine.beginHandshake();
+                        outgoingHandshakingAction.processOutgoing();
+                        break;
                     default:
                         throw new IllegalStateException(
                                 Fault.SSLError.format("Unknown handshake status:" + status));
@@ -152,6 +155,8 @@ class SSLChannel extends AbstractSSLAction implements ChannelListener {
                 status = engine.getHandshakeStatus();
             }
             if (isHandshakingDone()) {
+                logAction(engine.getHandshakeStatus().toString());
+                logAction(engine.getSession().getCipherSuite());
                 reset();
             }
         } catch (Exception e) {
@@ -204,8 +209,11 @@ class SSLChannel extends AbstractSSLAction implements ChannelListener {
 
     private void pullIncomingChunks() {
         int packetBufferSize = engine.getSession().getPacketBufferSize();
-        if (incomingNetData.capacity() < packetBufferSize) {
-            incomingNetData = enlargeBuffer(incomingNetData, packetBufferSize);
+
+        synchronized(this) {
+            if (incomingNetData.capacity() < packetBufferSize) {
+                incomingNetData = enlargeBuffer(incomingNetData, packetBufferSize);
+            }
         }
 
         if (residueChunk != null) {
@@ -238,7 +246,7 @@ class SSLChannel extends AbstractSSLAction implements ChannelListener {
         }
     }
 
-    private void enlargeAppBuffer() {
+    private synchronized void enlargeAppBuffer() {
         incomingAppData = enlargeBuffer(incomingAppData, engine.getSession().getApplicationBufferSize());
     }
 

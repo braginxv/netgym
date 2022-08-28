@@ -29,11 +29,12 @@ import org.techlook.ResultedCompletion;
 import org.techlook.SocketClient;
 import org.techlook.nio.TransportChannel;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
+import javax.net.ssl.*;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.security.KeyStore;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -42,10 +43,18 @@ import java.util.concurrent.ForkJoinPool;
 
 public class SSLSocketClient implements SocketClient {
     private final SocketClient transport;
+    private final KeyManager[] keyManagers;
+    private final TrustManager[] specifiedTrustManagers;
     private final ConcurrentMap<Integer, SSLChannel> sslChannels = new ConcurrentHashMap<>();
 
     public SSLSocketClient(SocketClient client) {
+        this(client, null, null);
+    }
+
+    public SSLSocketClient(SocketClient client, KeyManager[] keyManagers, TrustManager[] trustManagers) {
         this.transport = client;
+        this.keyManagers = keyManagers;
+        this.specifiedTrustManagers = trustManagers;
     }
 
     @Override
@@ -111,8 +120,30 @@ public class SSLSocketClient implements SocketClient {
 
         SSLContext context;
         try {
+            KeyStore keyStore = null;
+            if ("Dalvik".equals(System.getProperty("java.vm.name"))) {
+                keyStore = KeyStore.getInstance("AndroidCAStore");
+                keyStore.load(null, null);
+            }
+
+            String defaultAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+            TrustManagerFactory factory = TrustManagerFactory.getInstance(defaultAlgorithm);
+            factory.init(keyStore);
+            TrustManager[] androidTrustManagers = factory.getTrustManagers();
+
+            TrustManager[] allTrustManagers;
+            if (specifiedTrustManagers != null) {
+                int trustManagersCount = androidTrustManagers.length + specifiedTrustManagers.length;
+                allTrustManagers = Arrays.copyOf(androidTrustManagers, trustManagersCount);
+
+                System.arraycopy(specifiedTrustManagers, 0, allTrustManagers,
+                        androidTrustManagers.length, specifiedTrustManagers.length);
+            } else {
+                allTrustManagers = androidTrustManagers;
+            }
+
             context = SSLContext.getInstance("TLS");
-            context.init(null, null, null);
+            context.init(keyManagers, allTrustManagers, null);
         } catch (Exception e) {
             throw new IllegalStateException("Cannot create ssl context");
         }

@@ -39,12 +39,19 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -81,8 +88,8 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
 
     @Override
     public void get(String path,
-                    List<Pair<String, String>> additionalHeaders,
-                    List<Pair<String, String>> parameters,
+                    Set<Pair<String, String>> headers,
+                    Set<Pair<String, String>> parameters,
                     HttpListener listener) {
         putListener(listener);
         StringBuilder request = initRequestBuilder(path);
@@ -98,54 +105,54 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
                 request,
                 server,
                 isPersistent ? "keep-alive" : "close",
-                encodeHeaders(additionalHeaders));
+                encodeHeaders(headers));
 
         sendViaTransport(requestHeader);
     }
 
     @Override
     public void put(String path,
-                    List<Pair<String, String>> additionalHeaders,
-                    List<Pair<String, String>> urlParameters,
+                    Set<Pair<String, String>> headers,
+                    Set<Pair<String, String>> urlParameters,
                     String contentType,
                     Charset contentCharset,
                     byte[] content,
                     HttpListener listener) {
         putListener(listener);
         sendContent(Method.PUT,
-                path, additionalHeaders, urlParameters, contentType, contentCharset, content);
+                path, headers, urlParameters, contentType, contentCharset, content);
     }
 
     @Override
     public void delete(String path,
-                    List<Pair<String, String>> additionalHeaders,
-                    List<Pair<String, String>> urlParameters,
-                    String contentType,
-                    Charset contentCharset,
-                    byte[] content,
-                    HttpListener listener) {
+                       Set<Pair<String, String>> headers,
+                       Set<Pair<String, String>> urlParameters,
+                       String contentType,
+                       Charset contentCharset,
+                       byte[] content,
+                       HttpListener listener) {
         putListener(listener);
         sendContent(Method.DELETE,
-                path, additionalHeaders, urlParameters, contentType, contentCharset, content);
+                path, headers, urlParameters, contentType, contentCharset, content);
     }
 
     @Override
     public void postContent(String path,
-                            List<Pair<String, String>> additionalHeaders,
-                            List<Pair<String, String>> urlParameters,
+                            Set<Pair<String, String>> headers,
+                            Set<Pair<String, String>> urlParameters,
                             String contentType,
                             Charset contentCharset,
                             byte[] content,
                             HttpListener listener) {
         putListener(listener);
         sendContent(Method.POST,
-                path, additionalHeaders, urlParameters, contentType, contentCharset, content);
+                path, headers, urlParameters, contentType, contentCharset, content);
     }
 
     @Override
     public void postWithEncodedParameters(String path,
-                                          List<Pair<String, String>> additionalHeaders,
-                                          List<Pair<String, String>> parameters,
+                                          Set<Pair<String, String>> headers,
+                                          Set<Pair<String, String>> parameters,
                                           HttpListener listener) {
         putListener(listener);
         StringBuilder request = initRequestBuilder(path);
@@ -163,7 +170,7 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
                 request,
                 server,
                 isPersistent ? "keep-alive" : "close",
-                encodeHeaders(additionalHeaders),
+                encodeHeaders(headers),
                 parametersHeader);
 
         sendViaTransport(requestHeader);
@@ -174,7 +181,7 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
 
     @Override
     public void postFormData(String path,
-                             List<Pair<String, String>> additionalHeaders,
+                             Set<Pair<String, String>> headers,
                              FormRequestData requestData,
                              HttpListener listener) {
         putListener(listener);
@@ -191,7 +198,7 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
                 request,
                 server,
                 isPersistent ? "keep-alive" : "close",
-                encodeHeaders(additionalHeaders),
+                encodeHeaders(headers),
                 formFieldsHeader);
 
         sendViaTransport(requestHeader);
@@ -237,12 +244,12 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
     }
 
     void sendContent(String method,
-                             String path,
-                             List<Pair<String, String>> additionalHeaders,
-                             List<Pair<String, String>> urlParameters,
-                             String contentType,
-                             Charset contentCharset,
-                             byte[] content) {
+                     String path,
+                     Set<Pair<String, String>> headers,
+                     Set<Pair<String, String>> urlParameters,
+                     String contentType,
+                     Charset contentCharset,
+                     byte[] content) {
         StringBuilder request = initRequestBuilder(path);
         String contentHeaders = "";
         if (contentType != null && content != null) {
@@ -262,7 +269,7 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
                 request,
                 server,
                 isPersistent ? "keep-alive" : "close",
-                encodeHeaders(additionalHeaders),
+                encodeHeaders(headers),
                 contentHeaders);
 
         sendViaTransport(requestHeader);
@@ -334,23 +341,47 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
         sendViaTransport(string.getBytes(StandardCharsets.UTF_8));
     }
 
-    private synchronized void sendViaTransport(byte[] buffer) {
-        if ((connectId.get() < 0 || !client.send(buffer, 0, buffer.length, connectId.get()))
-                && reconnect()) {
-            client.send(buffer, 0, buffer.length, connectId.get());
+    private final Object connecting = new Object();
+    private final AtomicBoolean isConnecting = new AtomicBoolean(false);
+
+    private void sendViaTransport(byte[] buffer) {
+        if (isConnecting.get()) {
+            try {
+                synchronized (connecting) {
+                    connecting.wait();
+                }
+            } catch (InterruptedException ignored) {
+                sendViaTransport(buffer);
+            }
+        }
+
+        if ((connectId.get() < 0 || !client.send(buffer, 0, buffer.length, connectId.get()))) {
+            if(isConnecting.compareAndSet(false, true)) {
+                reconnectAndSend(buffer);
+            } else {
+                sendViaTransport(buffer);
+            }
         }
     }
 
-    private boolean reconnect() {
-        try {
-            connectId.set(client.connect(new InetSocketAddress(server, port), this));
-        } catch (IOException e) {
-            String errorMessage = Fault.AsyncClientError.format(e.getMessage());
-            log.log(Level.SEVERE, errorMessage);
-            return false;
-        }
-
-        return true;
+    private void reconnectAndSend(final byte[] buffer) {
+        client.getThreadPool().submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    connectId.set(client.connect(new InetSocketAddress(HttpAsyncClient.this.server, port), HttpAsyncClient.this));
+                    client.send(buffer, 0, buffer.length, connectId.get());
+                } catch (IOException e) {
+                    String errorMessage = Fault.AsyncClientError.format(e.getMessage());
+                    log.log(Level.SEVERE, errorMessage);
+                } finally {
+                    synchronized (connecting) {
+                        connecting.notify();
+                    }
+                    isConnecting.set(false);
+                }
+            }
+        });
     }
 
     private StringBuilder initRequestBuilder(String url) {
@@ -362,7 +393,7 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
         return request;
     }
 
-    private String encodeParameters(List<Pair<String, String>> parameters) {
+    private String encodeParameters(Set<Pair<String, String>> parameters) {
         StringBuilder request = new StringBuilder();
 
         Iterator<Pair<String, String>> iterator = parameters.iterator();
@@ -378,7 +409,7 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
         return request.toString();
     }
 
-    private String encodeHeaders(List<Pair<String, String>> headers) {
+    private String encodeHeaders(Set<Pair<String, String>> headers) {
         if (headers == null || headers.isEmpty()) {
             return "\n";
         }
