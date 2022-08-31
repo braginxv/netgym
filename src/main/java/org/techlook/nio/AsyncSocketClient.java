@@ -56,7 +56,6 @@ public class AsyncSocketClient implements SocketClient {
     private volatile Future<?> await;
     private volatile boolean dispatched = false;
 
-
     private AsyncSocketClient(Selector selector) {
         this.selector = selector;
     }
@@ -123,6 +122,18 @@ public class AsyncSocketClient implements SocketClient {
         selector.wakeup();
     }
 
+    @Override
+    public void awaitTerminating() throws ExecutionException, InterruptedException {
+        if (await != null) {
+            await.get();
+        }
+    }
+
+    @Override
+    public ForkJoinPool getThreadPool() {
+        return threadPool;
+    }
+
     private void dispatch() {
         Runnable scanning = new Runnable() {
             @Override
@@ -176,17 +187,5 @@ public class AsyncSocketClient implements SocketClient {
 
         await = threadPool.submit(scanning);
         dispatched = true;
-    }
-
-    @Override
-    public void awaitTerminating() throws ExecutionException, InterruptedException {
-        if (await != null) {
-            await.get();
-        }
-    }
-
-    @Override
-    public ForkJoinPool getThreadPool() {
-        return threadPool;
     }
 }

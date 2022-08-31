@@ -24,10 +24,7 @@
 
 package org.techlook.http.client;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -36,13 +33,15 @@ import org.techlook.ChannelListener;
 import org.techlook.SocketClient;
 import org.techlook.http.FormRequestData;
 import org.techlook.http.Pair;
+import org.techlook.nio.AsyncSocketClient;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ForkJoinPool;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class TestHttpAsyncClient {
@@ -54,6 +53,7 @@ public class TestHttpAsyncClient {
     private static final boolean IS_KEEPALIVE_CONNECTION = true;
     private static final String KEEPALIVE = IS_KEEPALIVE_CONNECTION ? "keep-alive" : "close";
     private static final int CHANNEL_ID = 12345;
+    private static final ForkJoinPool pool = new ForkJoinPool(AsyncSocketClient.PARALLELISM_LEVEL);
 
     private static final Set<Pair<String, String>> HEADERS = new LinkedHashSet<>(Arrays.asList(
             new Pair<>("User-Agent", "test agent"),
@@ -126,7 +126,8 @@ public class TestHttpAsyncClient {
         when(socketClient.connect(eq(new InetSocketAddress(SERVER, PORT)), any(ChannelListener.class)))
                 .thenReturn(CHANNEL_ID);
         when(socketClient.send(any(byte[].class), anyInt(), anyInt(), eq(CHANNEL_ID))).thenCallRealMethod();
-        when(socketClient.checkBuffer(any(byte[].class))).thenCallRealMethod();
+        doCallRealMethod().when(socketClient).checkBuffer(any(byte[].class));
+        when(socketClient.getThreadPool()).thenReturn(pool);
 
         http = new HttpAsyncClient(SERVER, PORT, IS_KEEPALIVE_CONNECTION, socketClient);
     }
@@ -137,12 +138,17 @@ public class TestHttpAsyncClient {
         http = null;
     }
 
+    @AfterClass
+    public static void ReleaseTestResources() {
+        pool.shutdown();
+    }
+
     @Test
     public void testGetRequest() {
         http.get(PATH, HEADERS, PARAMETERS, httpListener);
 
         byte[] data = requestHeader(HttpAsyncClient.Method.GET);
-        assertTrue(socketClient.checkBuffer(data));
+        socketClient.checkBuffer(data);
     }
 
     @Test
@@ -151,7 +157,7 @@ public class TestHttpAsyncClient {
         http.put(PATH, HEADERS, PARAMETERS, CONTENT_TYPE, StandardCharsets.UTF_8, content, httpListener);
 
         byte[] data = concat(requestHeader(HttpAsyncClient.Method.PUT, content, HEADERS, true), content);
-        assertTrue(socketClient.checkBuffer(data));
+        socketClient.checkBuffer(data);
     }
 
     @Test
@@ -159,7 +165,7 @@ public class TestHttpAsyncClient {
         http.delete(PATH, HEADERS, PARAMETERS, CONTENT_TYPE, StandardCharsets.UTF_8, null, httpListener);
 
         byte[] data = requestHeader(HttpAsyncClient.Method.DELETE);
-        assertTrue(socketClient.checkBuffer(data));
+        socketClient.checkBuffer(data);
     }
 
     @Test
@@ -168,7 +174,7 @@ public class TestHttpAsyncClient {
         http.postContent(PATH, HEADERS, PARAMETERS, CONTENT_TYPE, StandardCharsets.UTF_8, content, httpListener);
 
         byte[] data = concat(requestHeader(HttpAsyncClient.Method.POST, content, HEADERS, true), content);
-        assertTrue(socketClient.checkBuffer(data));
+        socketClient.checkBuffer(data);
     }
 
     @Test
@@ -180,7 +186,7 @@ public class TestHttpAsyncClient {
         headers.add(new Pair<>("Content-Type", "application/x-www-form-urlencoded"));
 
         byte[] data = concat(requestHeader(HttpAsyncClient.Method.POST, content, headers, false), content);
-        assertTrue(socketClient.checkBuffer(data));
+        socketClient.checkBuffer(data);
     }
 
     @Test
@@ -226,7 +232,7 @@ public class TestHttpAsyncClient {
 
         byte[] data = concat(requestHeader(HttpAsyncClient.Method.POST, content, headers,
                 false, false), content);
-        assertTrue(socketClient.checkBuffer(data));
+        socketClient.checkBuffer(data);
     }
 
     private static byte[] concat(byte[] array1, byte[] array2) {
@@ -236,14 +242,21 @@ public class TestHttpAsyncClient {
     }
 
     private static abstract class SocketClientTestImpl implements SocketClient {
-        private byte[] buffer = new byte[0];
+        private final static int WAIT_RESPONSE_TIMEOUT = 200;
+        private volatile byte[] buffer = new byte[0];
 
-        boolean checkBuffer(byte[] checkedBuffer) {
-            return Arrays.equals(buffer, checkedBuffer);
+        void checkBuffer(byte[] checkedBuffer) {
+            try {
+                Thread.sleep(WAIT_RESPONSE_TIMEOUT);
+            } catch (InterruptedException e) {
+                System.out.println("SocketClientTestImpl: waiting of the response was interrupted");;
+            }
+
+            assertEquals(new String(buffer), new String(checkedBuffer));
         }
 
         @Override
-        public boolean send(byte[] data, int offset, int length, Integer channelId) {
+        public synchronized boolean send(byte[] data, int offset, int length, Integer channelId) {
             if (buffer == null) {
                 buffer = new byte[0];
             }
