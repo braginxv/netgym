@@ -24,6 +24,7 @@
 
 package org.techlook.ssl;
 
+import org.techlook.AsyncAction;
 import org.techlook.ChannelListener;
 import org.techlook.SocketClient;
 
@@ -34,8 +35,8 @@ import java.util.concurrent.ForkJoinPool;
 
 class OutgoingHandshakingAction extends OutgoingAction {
     OutgoingHandshakingAction(SSLEngine engine,
-                              ChannelListener listener, ForkJoinPool threadPool, SocketClient transport) {
-        super(engine, listener, threadPool, transport);
+                              ChannelListener listener, ForkJoinPool threadPool, SocketClient transport, AsyncAction hostAction) {
+        super(engine, listener, threadPool, transport, hostAction);
     }
 
     @Override
@@ -51,7 +52,7 @@ class OutgoingHandshakingAction extends OutgoingAction {
     protected void handleWrap(SSLEngineResult result) {
         switch (result.getStatus()) {
             case BUFFER_UNDERFLOW:
-                throw new IllegalStateException("Unreachable point within the outgoing handshake data");
+                throw new IllegalStateException("Unreachable point within the outgoing handshake");
             case BUFFER_OVERFLOW:
                 enlargeOutgoingNetBuffer();
                 break;

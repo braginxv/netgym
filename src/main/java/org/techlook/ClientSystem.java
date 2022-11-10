@@ -44,7 +44,9 @@ public class ClientSystem {
      */
     public static SocketClient client() {
         try {
-            client.compareAndSet(null, AsyncSocketClient.run());
+            if (client.compareAndSet(null, AsyncSocketClient.run())) {
+                System.setProperty("jdk.tls.server.protocols", "TLSv1.2");
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
