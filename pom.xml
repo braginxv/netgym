@@ -4,7 +4,7 @@
     <groupId>com.github.braginxv</groupId>
     <artifactId>netgym</artifactId>
     <packaging>jar</packaging>
-    <version>0.6-beta</version>
+    <version>0.7</version>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>
         Full-featured high performance asynchronous network library for a client side of jvm-apps (including Android).
