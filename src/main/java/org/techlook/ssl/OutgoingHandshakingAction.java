@@ -31,12 +31,14 @@ import org.techlook.SocketClient;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
+import java.nio.ByteBuffer;
 import java.util.concurrent.ForkJoinPool;
 
 class OutgoingHandshakingAction extends OutgoingAction {
     OutgoingHandshakingAction(SSLEngine engine,
                               ChannelListener listener, ForkJoinPool threadPool, SocketClient transport, AsyncAction hostAction) {
         super(engine, listener, threadPool, transport, hostAction);
+        outgoingAppData = ByteBuffer.allocate(0);
     }
 
     @Override
@@ -66,8 +68,6 @@ class OutgoingHandshakingAction extends OutgoingAction {
                 outgoingNetData.position(0);
                 outgoingNetData.limit(outgoingNetData.capacity());
                 transport.send(chunk, 0, chunk.length, channelId);
-                outgoingAppData.limit(0);
-                outgoingAppData.compact();
                 break;
             case CLOSED:
                 break;

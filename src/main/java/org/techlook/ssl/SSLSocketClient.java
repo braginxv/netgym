@@ -30,13 +30,10 @@ import org.techlook.SocketClient;
 import org.techlook.nio.TransportChannel;
 
 import javax.net.ssl.*;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.security.KeyStore;
-import java.security.cert.X509Certificate;
-import java.text.DateFormat;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;

@@ -91,8 +91,10 @@ public class AsyncSocketClient implements SocketClient {
         transportChannel.createAndConnect(selector, channelBundle, server);
         channels.put(sequenceNumber, channelBundle);
 
-        if (!dispatched) {
-            dispatch();
+        synchronized (this) {
+            if (!dispatched) {
+                dispatch();
+            }
         }
 
         return sequenceNumber;
@@ -176,11 +178,16 @@ public class AsyncSocketClient implements SocketClient {
                             }
                         }
                     }
-                    selector.close();
-                    completion.finish();
                 } catch (Exception e) {
+                    e.printStackTrace();
                     String message = e.getMessage() != null ? e.getMessage() : e.toString();
                     completion.failure(Fault.AsyncClientError.format(message));
+                } finally {
+                    try {
+                        selector.close();
+                    } catch (IOException ignored) {
+                    }
+                    completion.finish();
                 }
             }
         };

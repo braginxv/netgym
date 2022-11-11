@@ -36,7 +36,7 @@ import java.util.concurrent.ForkJoinPool;
 
 class OutgoingAction extends AbstractSSLAction {
     protected final SSLEngine engine;
-    protected final ByteBuffer outgoingAppData;
+    protected ByteBuffer outgoingAppData;
 
     protected volatile ByteBuffer outgoingNetData;
     protected volatile ByteBuffer residueChunk;
