@@ -1,15 +1,15 @@
 ## The '__netgym__' network client for java apps
 
-'netgym' is a compact high performance asynchronous network client for various socket-based (TCP and UDP) connections.
+'netgym' is a compact high performance asynchronous network client for using various socket-based (TCP and UDP) connections.
 Among TCP features it supports secure socket connections (TLS), HTTP/1.1, including:
 
 1. Rest methods GET, POST (with arbitrary content, url-encoded, form-data), PUT, DELETE, OPTIONS;
 1. HTTP/1.1 connections: Single/Closable (per request), Keep-alive and Pipelining;
 1. HTTPS (TLS) connections.
 
-The pivot idea of this library is that the only one instance of client is used to serve all socket-based connections and is built on
+The crucial idea of this library is that the only one instance of client is used to serve all socket-based connections and is built on
 limited thread pool. Furthermore, different stages or operations of one connection can perform in parallel on the same
-thread fork-join pool.
+ fork-join thread pool.
 
 ![Thread model](images/netgym_thread_model.png)
 
@@ -65,17 +65,18 @@ asynchronously to prevent blocking userspace thread (such as UI thread).
   final CountDownLatch latch = new CountDownLatch(urls.length);
   
   final Pattern fileNamePattern = Pattern.compile(".*/(?=[^/]+$)");
+  
   Arrays.stream(urls)
     .forEachOrdered(url -> requestBuilder.asyncRawGET(url, serverResponse -> {
         serverResponse.left().apply(System.err::println);
+        
         serverResponse.right().apply( response -> {
-
            if (response.getCode() != HttpURLConnection.HTTP_OK) {
               System.err.printf("Downloading failed with HTTP code: %d\n", response.getCode());
               return;
            }
            try {
-               Files.write(Paths.get( imageDirectory, fileNamePattern.matcher(url).replaceFirst("")), response.getContent());
+               Files.write(Paths.get(imageDirectory, fileNamePattern.matcher(url).replaceFirst("")), response.getContent());
             } catch (IOException e) {
                e.printStackTrace();
             } finally { latch.countDown(); }
@@ -92,7 +93,7 @@ asynchronously to prevent blocking userspace thread (such as UI thread).
 
 ### Synchronous flow
 
-Sometimes user's thread would be blocked until a response is received. In these cases you'd use synchronous
+Sometimes thread could be blocked until a response is received. In these cases you'd use synchronous
 adapters like this:
 
 ```java
@@ -102,6 +103,7 @@ adapters like this:
         .addHeader("User-Agent", "Netgym network library (https://github.com/braginxv/netgym)");
 
    final Pattern fileNamePattern = Pattern.compile(".*/(?=[^/]+$)");
+   
    Arrays.stream(urls)
     .map(url -> new Pair<>(url, requestBuilder.syncRawGET(url)))
     .map(completion -> {
@@ -168,7 +170,7 @@ adapters like this:
   ClientSystem.client().shutdown();
   ClientSystem.client().awaitTerminating();
 ```
-Note that there is no need to use auxiliary threads through `subscribeOn()` cuz `netgym` client optimally
+Note that there is no need to engage auxiliary threads through `subscribeOn()` cuz `netgym` client optimally
 parallels network connections itself and performs requests asynchronously.
 
 ## HTTP connection types
