@@ -177,19 +177,19 @@ parallels network connections itself and performs requests asynchronously.
 
 The client supports following connections (HTTP/1.1)
 
-1. `httpRequestBuilder.configureConnection(HttpRequestBuilder.ConnectionType.Single)`
+1. `simpleHttpClient.configureConnection(HttpRequestBuilder.ConnectionType.Single)`
    It's a closable TCP connection being disconnected after having obtained a response. Due to the fact that these
    connections are executed in parallel and not depend on each other, this type of connection can be fastest to perform
    parallel requests.
-2. `httpRequestBuilder.configureConnection(HttpRequestBuilder.ConnectionType.Persistent)`
+2. `simpleHttpClient.configureConnection(HttpRequestBuilder.ConnectionType.Persistent)`
    In this case it is allowed to send multiple requests through the same TCP and TLS sessions. 
    These connections are also called "keep-alive".
-3. `httpRequestBuilder.configureConnection(HttpRequestBuilder.ConnectionType.Pipelining)`
-   Similar to Persistent connections the Pipelining connection is used to sending multiple requests, but it isn't
-   waiting the response from previous request to send a new one, hence this connection is faster than the persistent
+3. `simpleHttpClient.configureConnection(HttpRequestBuilder.ConnectionType.Pipelining)`
+   Similar to Persistent connections the Pipelining connection is used to sending multiple requests, but it doesn't
+   wait the response from previous request to send a new one, hence this connection is faster than the persistent
    connection. In spite of Pipelining connections are the part of standard HTTP/1.1 they may not be supported or
    may be supported partially by many servers.
-4. `httpRequestBuilder.configurePipeliningConnection(TIME_DELAY_BETWEEN_REQUEST_SENDING)`
+4. `simpleHttpClient.configurePipeliningConnection(TIME_DELAY_BETWEEN_REQUEST_SENDING)`
    Sometimes a remote server cannot process multiple requests sent all at once in Pipelining connection, but it could be done in this way if
    requests were sent with a little delay. Invoke this method to use Pipelining connection and specify delay in ms between
    requests being sent.
