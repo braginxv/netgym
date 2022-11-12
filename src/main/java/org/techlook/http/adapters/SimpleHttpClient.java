@@ -27,6 +27,8 @@ package org.techlook.http.adapters;
 import org.techlook.*;
 import org.techlook.http.*;
 
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.TrustManager;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -42,7 +44,7 @@ public class SimpleHttpClient {
     private final String baseUrl;
     private final Set<Pair<String, String>> commonHeaders = new HashSet<>();
 
-    public static enum ConnectionType {
+    public enum ConnectionType {
         Single, Persistent, Pipelining
     }
 
@@ -87,6 +89,16 @@ public class SimpleHttpClient {
 
     public SimpleHttpClient addHeaders(Set<Pair<String, String>> headers) {
         commonHeaders.addAll(headers);
+        return this;
+    }
+
+    public SimpleHttpClient setTLSKeyManagers(KeyManager[] keyManagers) {
+        HttpClient.setKeyManagers(keyManagers);
+        return this;
+    }
+
+    public SimpleHttpClient setTLSTrustManagers(TrustManager[] trustManagers) {
+        HttpClient.setTrustManagers(trustManagers);
         return this;
     }
 
@@ -467,17 +479,28 @@ public class SimpleHttpClient {
 
             @Override
             SocketClient socketClient() {
-                return ClientSystem.sslClient();
+                return ClientSystem.sslClient(keyManagers, trustManagers);
             }
         };
+
+        private static final String HTTP = "http";
+        private static final String HTTPS = "https";
+        private static KeyManager[] keyManagers;
+        private static TrustManager[] trustManagers;
+
+        public static void setKeyManagers(KeyManager[] keyManagers) {
+            HttpClient.keyManagers = keyManagers;
+        }
+
+        public static void setTrustManagers(TrustManager[] trustManagers) {
+            HttpClient.trustManagers = trustManagers;
+        }
 
         abstract int port();
 
         abstract SocketClient socketClient();
 
-        private static final String HTTP = "http";
 
-        private static final String HTTPS = "https";
 
         static HttpClient fromProtocol(String protocol) {
             switch (protocol) {

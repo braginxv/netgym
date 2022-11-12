@@ -27,6 +27,8 @@ package org.techlook;
 import org.techlook.nio.AsyncSocketClient;
 import org.techlook.ssl.SSLSocketClient;
 
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.TrustManager;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -44,9 +46,7 @@ public class ClientSystem {
      */
     public static SocketClient client() {
         try {
-            if (client.compareAndSet(null, AsyncSocketClient.run())) {
-                System.setProperty("jdk.tls.server.protocols", "TLSv1.2");
-            }
+            client.compareAndSet(null, AsyncSocketClient.run());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -58,8 +58,8 @@ public class ClientSystem {
      * Getting SSL-version async client
      * @return SSL client
      */
-    public static SocketClient sslClient() {
-        sslClient.compareAndSet(null, new SSLSocketClient(client()));
+    public static SocketClient sslClient(KeyManager[] keyManagers, TrustManager[] trustManagers) {
+        sslClient.compareAndSet(null, new SSLSocketClient(client(), keyManagers, trustManagers));
 
         return sslClient.get();
     }
