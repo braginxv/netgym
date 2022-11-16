@@ -39,19 +39,13 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -84,6 +78,30 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
         this.server = server;
         this.port = port;
         this.isPersistent = isPersistent;
+    }
+
+    @Override
+    public void head(String path,
+                    Set<Pair<String, String>> headers,
+                    Set<Pair<String, String>> parameters,
+                    HttpListener listener) {
+        putListener(listener);
+        StringBuilder request = initRequestBuilder(path);
+
+        if (parameters != null && !parameters.isEmpty()) {
+            request.append("?");
+            request.append(encodeParameters(parameters));
+        }
+
+        final String requestHeader = String.format(
+                "%s %s HTTP/1.1\nHost: %s\nConnection: %s\n%s\n",
+                Method.HEAD,
+                request,
+                server,
+                isPersistent ? "keep-alive" : "close",
+                encodeHeaders(headers));
+
+        sendViaTransport(requestHeader);
     }
 
     @Override
@@ -134,6 +152,67 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
         putListener(listener);
         sendContent(Method.DELETE,
                 path, headers, urlParameters, contentType, contentCharset, content);
+    }
+
+    @Override
+    public void patch(String path,
+                      Set<Pair<String, String>> headers,
+                      Set<Pair<String, String>> urlParameters,
+                      String contentType,
+                      Charset contentCharset,
+                      byte[] content,
+                      HttpListener listener) {
+        putListener(listener);
+        sendContent(Method.PATCH,
+                path, headers, urlParameters, contentType, contentCharset, content);
+    }
+
+    @Override
+    public void connect(String path,
+                    Set<Pair<String, String>> headers,
+                    Set<Pair<String, String>> parameters,
+                    HttpListener listener) {
+        putListener(listener);
+        StringBuilder request = initRequestBuilder(path);
+
+        if (parameters != null && !parameters.isEmpty()) {
+            request.append("?");
+            request.append(encodeParameters(parameters));
+        }
+
+        final String requestHeader = String.format(
+                "%s %s HTTP/1.1\nHost: %s\nConnection: %s\n%sAccept-Encoding: gzip, deflate\n\n",
+                Method.CONNECT,
+                request,
+                server,
+                isPersistent ? "keep-alive" : "close",
+                encodeHeaders(headers));
+
+        sendViaTransport(requestHeader);
+    }
+
+    @Override
+    public void trace(String path,
+                     Set<Pair<String, String>> headers,
+                     Set<Pair<String, String>> parameters,
+                     HttpListener listener) {
+        putListener(listener);
+        StringBuilder request = initRequestBuilder(path);
+
+        if (parameters != null && !parameters.isEmpty()) {
+            request.append("?");
+            request.append(encodeParameters(parameters));
+        }
+
+        final String requestHeader = String.format(
+                "%s %s HTTP/1.1\nHost: %s\nConnection: %s\n%s\n",
+                Method.TRACE,
+                request,
+                server,
+                isPersistent ? "keep-alive" : "close",
+                encodeHeaders(headers));
+
+        sendViaTransport(requestHeader);
     }
 
     @Override

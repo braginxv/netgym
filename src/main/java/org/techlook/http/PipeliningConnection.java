@@ -65,6 +65,12 @@ public class PipeliningConnection implements HttpConnection {
     }
 
     @Override
+    public void head(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
+        httpClient.head(url, additionalHeaders, parameters, listener);
+        throttle();
+    }
+
+    @Override
     public synchronized void get(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
         httpClient.get(url, additionalHeaders, parameters, listener);
         throttle();
@@ -79,6 +85,24 @@ public class PipeliningConnection implements HttpConnection {
     @Override
     public void delete(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
         httpClient.delete(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener);
+        throttle();
+    }
+
+    @Override
+    public void patch(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
+        httpClient.patch(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener);
+        throttle();
+    }
+
+    @Override
+    public void connect(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
+        httpClient.connect(url, additionalHeaders, parameters, listener);
+        throttle();
+    }
+
+    @Override
+    public void trace(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
+        httpClient.trace(url, additionalHeaders, parameters, listener);
         throttle();
     }
 

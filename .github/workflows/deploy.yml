@@ -6,6 +6,7 @@ on:
 
 jobs:
   build:
+    if: github.repository == 'braginxv/netgym' && github.actor == 'braginxv'
     runs-on: ubuntu-latest
 
     steps:

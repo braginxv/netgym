@@ -39,6 +39,18 @@ import java.util.Set;
  */
 public interface HttpConnection {
     /**
+     * HTTP HEAD method
+     * @param url                the request URL to be fetched
+     * @param additionalHeaders  additional user defined HTTP headers
+     * @param parameters         request parameters which will be added to the URL
+     * @param listener           HTTP listener
+     */
+    void head(String url,
+             Set<Pair<String, String>> additionalHeaders,
+             Set<Pair<String, String>> parameters,
+             HttpListener listener);
+
+    /**
      * HTTP GET method
      * @param url                the request URL to be fetched
      * @param additionalHeaders  additional user defined HTTP headers
@@ -85,6 +97,48 @@ public interface HttpConnection {
              Charset contentCharset,
              byte[] content,
              HttpListener listener);
+
+    /**
+     * HTTP PATCH method
+     * @param url                the request URL
+     * @param additionalHeaders  additional user defined HTTP headers
+     * @param urlParameters      request parameters which will be added to the URL
+     * @param contentType        MIME-type of the content
+     * @param contentCharset     content charset
+     * @param content            content
+     * @param listener           HTTP listener
+     */
+    void patch(String url,
+               Set<Pair<String, String>> additionalHeaders,
+               Set<Pair<String, String>> urlParameters,
+               String contentType,
+               Charset contentCharset,
+               byte[] content,
+               HttpListener listener);
+
+    /**
+     * HTTP CONNECT method
+     * @param url                the request URL to be fetched
+     * @param additionalHeaders  additional user defined HTTP headers
+     * @param parameters         request parameters which will be added to the URL
+     * @param listener           HTTP listener
+     */
+    void connect(String url,
+             Set<Pair<String, String>> additionalHeaders,
+             Set<Pair<String, String>> parameters,
+             HttpListener listener);
+
+    /**
+     * HTTP TRACE method
+     * @param url                the request URL to be fetched
+     * @param additionalHeaders  additional user defined HTTP headers
+     * @param parameters         request parameters which will be added to the URL
+     * @param listener           HTTP listener
+     */
+    void trace(String url,
+              Set<Pair<String, String>> additionalHeaders,
+              Set<Pair<String, String>> parameters,
+              HttpListener listener);
 
     /**
      * HTTP POST method for sending arbitrary content. Request parameters will be added to URL.

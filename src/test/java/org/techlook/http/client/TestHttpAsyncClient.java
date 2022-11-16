@@ -70,16 +70,20 @@ public class TestHttpAsyncClient {
 
     private static final String ENCODED_PARAMETERS = "param1=value1&param2=value2&param3=value3";
 
-    private static byte[] requestHeader(String method) {
+    private static byte[] requestHeader(String method, boolean hasContent) {
         String headerPart = "Connection: " + KEEPALIVE + "\n" +
                 "User-Agent: test agent\n" +
                 "Header1: value1\n" +
                 "Header2: value2\n" +
-                "Header3: value3\n" +
-                "Accept-Encoding: gzip, deflate";
+                "Header3: value3" +
+                (hasContent ? "\nAccept-Encoding: gzip, deflate" : "");
 
         return (method + " " + PATH + "?" + ENCODED_PARAMETERS + " HTTP/1.1\n" +
                 "Host: " + SERVER + "\n" + headerPart + "\n\n").getBytes(StandardCharsets.UTF_8);
+    }
+
+    private static byte[] requestHeader(String method) {
+        return requestHeader(method, true);
     }
 
     private static byte[] requestHeader(String method, byte[] content, Set<Pair<String, String>> headers,
@@ -148,6 +152,14 @@ public class TestHttpAsyncClient {
         http.get(PATH, HEADERS, PARAMETERS, httpListener);
 
         byte[] data = requestHeader(HttpAsyncClient.Method.GET);
+        socketClient.checkBuffer(data);
+    }
+
+    @Test
+    public void testHeadRequest() {
+        http.head(PATH, HEADERS, PARAMETERS, httpListener);
+
+        byte[] data = requestHeader(HttpAsyncClient.Method.HEAD, false);
         socketClient.checkBuffer(data);
     }
 
@@ -249,7 +261,8 @@ public class TestHttpAsyncClient {
             try {
                 Thread.sleep(WAIT_RESPONSE_TIMEOUT);
             } catch (InterruptedException e) {
-                System.out.println("SocketClientTestImpl: waiting of the response was interrupted");;
+                System.out.println("SocketClientTestImpl: waiting of the response was interrupted");
+                ;
             }
 
             assertEquals(new String(buffer), new String(checkedBuffer));
