@@ -29,7 +29,6 @@ import org.techlook.http.client.HttpAsyncClient;
 import org.techlook.http.client.HttpListener;
 
 import java.nio.charset.Charset;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -51,27 +50,78 @@ public class SequentialConnection implements HttpConnection {
 
     /**
      * Creation of this client and connection parameters saving
-     * @param server       the remote server we need connect to
-     * @param port         TCP port
-     * @param asyncClient  asynchronous SocketClient instance to be used as transport for transmitting request
+     *
+     * @param server      the remote server we need connect to
+     * @param port        TCP port
+     * @param asyncClient asynchronous SocketClient instance to be used as transport for transmitting request
      */
     public SequentialConnection(String server, int port, SocketClient asyncClient) {
         httpClient = new HttpAsyncClient(server, port, true, asyncClient);
     }
 
     @Override
+    public void head(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
+        putListener(new BaseListener(url, additionalHeaders, parameters, listener) {
+            @Override
+            void doRequest() {
+                httpClient.head(url, additionalHeaders, parameters, this);
+            }
+        });
+    }
+
+    @Override
     public void get(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
-        putListener(new GetListener(url, additionalHeaders, parameters, listener));
+        putListener(new BaseListener(url, additionalHeaders, parameters, listener) {
+            @Override
+            void doRequest() {
+                httpClient.get(url, additionalHeaders, parameters, this);
+            }
+        });
     }
 
     @Override
     public void put(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
-        putListener(new PutListener(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener));
+        putListener(new BasePutListener(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener) {
+            @Override
+            void doRequest() {
+                httpClient.put(url, additionalHeaders, urlParameters, contentType, contentCharset, content, this);
+            }
+        });
     }
 
     @Override
     public void delete(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
         putListener(new DeleteListener(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener));
+    }
+
+    @Override
+    public void patch(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
+        putListener(new BasePutListener(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener) {
+            @Override
+            void doRequest() {
+                httpClient.patch(url, additionalHeaders, urlParameters, contentType, contentCharset, content, this);
+            }
+        });
+    }
+
+    @Override
+    public void connect(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
+        putListener(new BaseListener(url, additionalHeaders, parameters, listener) {
+            @Override
+            void doRequest() {
+                httpClient.connect(url, additionalHeaders, parameters, this);
+            }
+        });
+    }
+
+    @Override
+    public void trace(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
+        putListener(new BaseListener(url, additionalHeaders, parameters, listener) {
+            @Override
+            void doRequest() {
+                httpClient.trace(url, additionalHeaders, parameters, this);
+            }
+        });
     }
 
     @Override
@@ -111,10 +161,10 @@ public class SequentialConnection implements HttpConnection {
     }
 
     private void pollRequests() {
-            ResponseListener nextListener = requestSequence.poll();
-            if (nextListener != null) {
-                isRequestRunning.set(true);
-                nextListener.doRequest();
+        ResponseListener nextListener = requestSequence.poll();
+        if (nextListener != null) {
+            isRequestRunning.set(true);
+            nextListener.doRequest();
         }
     }
 
@@ -167,37 +217,32 @@ public class SequentialConnection implements HttpConnection {
         }
     }
 
-    private class GetListener extends ResponseListener {
-        private final String url;
-        private final Set<Pair<String, String>> additionalHeaders;
-        private final Set<Pair<String, String>> parameters;
+    private abstract class BaseListener extends ResponseListener {
+        protected final String url;
+        protected final Set<Pair<String, String>> additionalHeaders;
+        protected final Set<Pair<String, String>> parameters;
 
-        private GetListener(String url,
-                            Set<Pair<String, String>> additionalHeaders,
-                            Set<Pair<String, String>> parameters, HttpListener listener) {
+        private BaseListener(String url,
+                             Set<Pair<String, String>> additionalHeaders,
+                             Set<Pair<String, String>> parameters, HttpListener listener) {
             super(listener);
             this.url = url;
             this.additionalHeaders = additionalHeaders;
             this.parameters = parameters;
         }
-
-        @Override
-        void doRequest() {
-            httpClient.get(url, additionalHeaders, parameters, this);
-        }
     }
 
-    private class PutListener extends ResponseListener {
-        private final String url;
-        private final Set<Pair<String, String>> additionalHeaders;
-        private final Set<Pair<String, String>> urlParameters;
-        private final String contentType;
-        private final Charset contentCharset;
-        private final byte[] content;
+    private abstract class BasePutListener extends ResponseListener {
+        protected final String url;
+        protected final Set<Pair<String, String>> additionalHeaders;
+        protected final Set<Pair<String, String>> urlParameters;
+        protected final String contentType;
+        protected final Charset contentCharset;
+        protected final byte[] content;
 
-        private PutListener(String url, Set<Pair<String, String>> additionalHeaders,
-                            Set<Pair<String, String>> urlParameters, String contentType,
-                            Charset contentCharset, byte[] content, HttpListener listener) {
+        private BasePutListener(String url, Set<Pair<String, String>> additionalHeaders,
+                                Set<Pair<String, String>> urlParameters, String contentType,
+                                Charset contentCharset, byte[] content, HttpListener listener) {
             super(listener);
             this.url = url;
             this.additionalHeaders = additionalHeaders;
@@ -205,11 +250,6 @@ public class SequentialConnection implements HttpConnection {
             this.contentType = contentType;
             this.contentCharset = contentCharset;
             this.content = content;
-        }
-
-        @Override
-        void doRequest() {
-            httpClient.put(url, additionalHeaders, urlParameters, contentType, contentCharset, content, this);
         }
     }
 
@@ -222,8 +262,8 @@ public class SequentialConnection implements HttpConnection {
         private final byte[] content;
 
         private DeleteListener(String url, Set<Pair<String, String>> additionalHeaders,
-                            Set<Pair<String, String>> urlParameters, String contentType,
-                            Charset contentCharset, byte[] content, HttpListener listener) {
+                               Set<Pair<String, String>> urlParameters, String contentType,
+                               Charset contentCharset, byte[] content, HttpListener listener) {
             super(listener);
             this.url = url;
             this.additionalHeaders = additionalHeaders;

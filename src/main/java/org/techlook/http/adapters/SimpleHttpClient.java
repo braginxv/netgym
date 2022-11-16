@@ -170,7 +170,7 @@ public class SimpleHttpClient {
     }
 
     public void asyncPUT(String resource, String contentType, Charset contentCharset,
-                         byte[] content, final Consumer<Either<String, Response>> consumer) {
+                         byte[] content, final Consumer<Either<String, StringResponse>> consumer) {
         asyncPUT(resource, contentType, contentCharset, content, null, null, consumer);
     }
 
@@ -178,33 +178,72 @@ public class SimpleHttpClient {
                          byte[] content,
                          Set<Pair<String, String>> requestParameters,
                          Set<Pair<String, String>> additionalHeaders,
-                         final Consumer<Either<String, Response>> consumer) {
+                         final Consumer<Either<String, StringResponse>> consumer) {
         prepareConnection();
-        ByteResponseListener listener = new ByteResponseListener() {
+        StringResponseListener listener = new StringResponseListener() {
             @Override
-            public void respond(Either<String, Response> response) {
+            public void respondString(Either<String, StringResponse> response) {
                 consumer.consume(response);
             }
         };
-
         httpConnection.get().put(baseUrl + resource, getHeadersWith(additionalHeaders), requestParameters,
                 contentType, contentCharset, content, listener);
     }
 
-    public ResultedCompletion<Response> syncPUT(String resource, String contentType, Charset contentCharset,
+    public ResultedCompletion<StringResponse> syncPUT(String resource, String contentType, Charset contentCharset,
                                                 byte[] content) {
         return syncPUT(resource, contentType, contentCharset, content, null, null);
 
     }
 
-    public ResultedCompletion<Response> syncPUT(String resource, String contentType, Charset contentCharset,
+    public ResultedCompletion<StringResponse> syncPUT(String resource, String contentType, Charset contentCharset,
                                                 byte[] content,
                                                 Set<Pair<String, String>> requestParameters,
                                                 Set<Pair<String, String>> additionalHeaders) {
         prepareConnection();
-        SyncByteResponseListener listener = new SyncByteResponseListener();
+        SyncStringResponseListener listener = new SyncStringResponseListener();
 
         httpConnection.get().put(baseUrl + resource, getHeadersWith(additionalHeaders), requestParameters,
+                contentType, contentCharset, content, listener);
+
+        return listener.watchCompletion();
+    }
+
+    public void asyncDELETE(String resource, String contentType, Charset contentCharset,
+                         byte[] content, final Consumer<Either<String, StringResponse>> consumer) {
+        asyncDELETE(resource, contentType, contentCharset, content, null, null, consumer);
+    }
+
+    public void asyncDELETE(String resource, String contentType, Charset contentCharset,
+                         byte[] content,
+                         Set<Pair<String, String>> requestParameters,
+                         Set<Pair<String, String>> additionalHeaders,
+                         final Consumer<Either<String, StringResponse>> consumer) {
+        prepareConnection();
+        StringResponseListener listener = new StringResponseListener() {
+            @Override
+            public void respondString(Either<String, StringResponse> response) {
+                consumer.consume(response);
+            }
+        };
+        httpConnection.get().delete(baseUrl + resource, getHeadersWith(additionalHeaders), requestParameters,
+                contentType, contentCharset, content, listener);
+    }
+
+    public ResultedCompletion<StringResponse> syncDELETE(String resource, String contentType, Charset contentCharset,
+                                                byte[] content) {
+        return syncDELETE(resource, contentType, contentCharset, content, null, null);
+
+    }
+
+    public ResultedCompletion<StringResponse> syncDELETE(String resource, String contentType, Charset contentCharset,
+                                                byte[] content,
+                                                Set<Pair<String, String>> requestParameters,
+                                                Set<Pair<String, String>> additionalHeaders) {
+        prepareConnection();
+        SyncStringResponseListener listener = new SyncStringResponseListener();
+
+        httpConnection.get().delete(baseUrl + resource, getHeadersWith(additionalHeaders), requestParameters,
                 contentType, contentCharset, content, listener);
 
         return listener.watchCompletion();

@@ -57,7 +57,7 @@ Suppose we need to download images listed in `images` variable from a remote ser
 asynchronously to prevent blocking userspace thread (such as UI thread).
 
 ```java
-  final SimpleHttpClient requestBuilder = new SimpleHttpClient(baseUrl)
+  final SimpleHttpClient client = new SimpleHttpClient(baseUrl)
     .configureConnection(SimpleHttpClient.ConnectionType.Single)
     .addHeader("User-Agent", "Netgym network library (https://github.com/braginxv/netgym)");
 
@@ -67,12 +67,13 @@ asynchronously to prevent blocking userspace thread (such as UI thread).
   final Pattern fileNamePattern = Pattern.compile(".*/(?=[^/]+$)");
   
   Arrays.stream(urls)
-    .forEachOrdered(url -> requestBuilder.asyncRawGET(url, serverResponse -> {
+    .forEachOrdered(url -> client.asyncRawGET(url, serverResponse -> {
         serverResponse.left().apply(System.err::println);
         
         serverResponse.right().apply( response -> {
            if (response.getCode() != HttpURLConnection.HTTP_OK) {
               System.err.printf("Downloading failed with HTTP code: %d\n", response.getCode());
+              latch.countDown();
               return;
            }
            try {
@@ -98,14 +99,14 @@ adapters like this:
 
 ```java
 
-   final SimpleHttpClient requestBuilder = new SimpleHttpClient(baseUrl)
+   final SimpleHttpClient client = new SimpleHttpClient(baseUrl)
         .configureConnection(SimpleHttpClient.ConnectionType.Single)
         .addHeader("User-Agent", "Netgym network library (https://github.com/braginxv/netgym)");
 
    final Pattern fileNamePattern = Pattern.compile(".*/(?=[^/]+$)");
    
    Arrays.stream(urls)
-    .map(url -> new Pair<>(url, requestBuilder.syncRawGET(url)))
+    .map(url -> new Pair<>(url, client.syncRawGET(url)))
     .map(completion -> {
            try {
                return new Pair<>(completion.getKey(), completion.getValue().awaitResult());
@@ -142,7 +143,7 @@ adapters like this:
 
 ```java
 
-  final SimpleHttpClient requestBuilder = new SimpleHttpClient(baseUrl)
+  final SimpleHttpClient client = new SimpleHttpClient(baseUrl)
      .configureConnection(SimpleHttpClient.ConnectionType.Single)
      .addHeader("User-Agent", "Netgym network library (https://github.com/braginxv/netgym)");
    
@@ -152,7 +153,7 @@ adapters like this:
      .fromIterable(Arrays.asList(urls))
      .flatMap((Function<String, ObservableSource<Pair<String, Response>>>) path ->
         Observable.create((ObservableOnSubscribe<Pair<String, Response>>) emitter ->
-           requestBuilder.asyncRawGET(path, result -> {
+          client.asyncRawGET(path, result -> {
             result.left().apply(message -> emitter.onError(new RuntimeException(message)));
       
             result.right().apply(response -> {
@@ -177,14 +178,14 @@ parallels network connections itself and performs requests asynchronously.
 
 The client supports following connections (HTTP/1.1)
 
-1. `simpleHttpClient.configureConnection(HttpRequestBuilder.ConnectionType.Single)`
+1. `simpleHttpClient.configureConnection(SimpleHttpClient.ConnectionType.Single)`
    It's a closable TCP connection being disconnected after having obtained a response. Due to the fact that these
    connections are executed in parallel and not depend on each other, this type of connection can be fastest to perform
    parallel requests.
-2. `simpleHttpClient.configureConnection(HttpRequestBuilder.ConnectionType.Persistent)`
+2. `simpleHttpClient.configureConnection(SimpleHttpClient.ConnectionType.Persistent)`
    In this case it is allowed to send multiple requests through the same TCP and TLS sessions. 
    These connections are also called "keep-alive".
-3. `simpleHttpClient.configureConnection(HttpRequestBuilder.ConnectionType.Pipelining)`
+3. `simpleHttpClient.configureConnection(SimpleHttpClient.ConnectionType.Pipelining)`
    Similar to Persistent connections the Pipelining connection is used to sending multiple requests, but it doesn't
    wait the response from previous request to send a new one, hence this connection is faster than the persistent
    connection. In spite of Pipelining connections are the part of standard HTTP/1.1 they may not be supported or

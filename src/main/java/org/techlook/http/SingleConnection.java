@@ -29,7 +29,6 @@ import org.techlook.http.client.HttpAsyncClient;
 import org.techlook.http.client.HttpListener;
 
 import java.nio.charset.Charset;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -55,6 +54,11 @@ public class SingleConnection implements HttpConnection {
     }
 
     @Override
+    public void head(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
+        new HttpAsyncClient(server, port, false, asyncClient).head(url, additionalHeaders, parameters, listener);
+    }
+
+    @Override
     public void get(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
         new HttpAsyncClient(server, port, false, asyncClient).get(url, additionalHeaders, parameters, listener);
     }
@@ -67,6 +71,21 @@ public class SingleConnection implements HttpConnection {
     @Override
     public void delete(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
         new HttpAsyncClient(server, port, false, asyncClient).delete(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener);
+    }
+
+    @Override
+    public void patch(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
+        new HttpAsyncClient(server, port, false, asyncClient).patch(url, additionalHeaders, urlParameters, contentType, contentCharset, content, listener);
+    }
+
+    @Override
+    public void connect(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
+        new HttpAsyncClient(server, port, false, asyncClient).connect(url, additionalHeaders, parameters, listener);
+    }
+
+    @Override
+    public void trace(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
+        new HttpAsyncClient(server, port, false, asyncClient).trace(url, additionalHeaders, parameters, listener);
     }
 
     @Override
