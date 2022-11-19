@@ -4,11 +4,11 @@
     <groupId>com.github.braginxv</groupId>
     <artifactId>netgym</artifactId>
     <packaging>jar</packaging>
-    <version>0.9</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>
-        Full-featured high performance asynchronous network library for a client side of jvm-apps (including Android).
-        It provides handling large number of parallel connections (TCP, UDP) using single instance of the client.
+        High performance asynchronous network library for a client side of jvm-apps (including Android).
+        It provides handling of a large number of parallel connections (TCP, UDP) using a single instance of the client.
     </description>
     <url>https://github.com/braginxv/netgym</url>
     <licenses>
@@ -40,11 +40,6 @@
         <maven.compiler.target>1.7</maven.compiler.target>
     </properties>
     <dependencies>
-        <dependency>
-            <groupId>io.reactivex.rxjava3</groupId>
-            <artifactId>rxjava</artifactId>
-            <version>3.1.5</version>
-        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

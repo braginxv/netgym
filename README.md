@@ -13,9 +13,9 @@ limited thread pool. Furthermore, different stages or operations of one connecti
 
 ![Thread model](images/netgym_thread_model.png)
 
-As it is shown above, the following operations execute in parallel increasing performance:
+That is following operations execute in parallel increasing performance:
 
-1. TLS handshake in particular Thread Pool used for blocking operations
+1. TLS handshake/re-handshake in managed Thread Pool used for blocking operations
 1. Data encryption/decryption within a TLS connection
 1. Gzip/deflate data compressing/uncompressing
 
@@ -33,20 +33,20 @@ If you use Maven then insert the following
 <dependency>
     <groupId>com.github.braginxv</groupId>
     <artifactId>netgym</artifactId>
-    <version>0.7</version>
+    <version>1.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
 In case of using Gradle
 
 ```groovy
-implementation 'com.github.braginxv:netgym:0.7'
+implementation 'com.github.braginxv:netgym:1.0.0-SNAPSHOT'
 ```
 
 To add to a scala project use the following
 
 ```scala
-libraryDependencies += "com.github.braginxv" % "netgym" % "0.7"
+libraryDependencies += "com.github.braginxv" % "netgym" % "1.0.0-SNAPSHOT"
 ```
 
 ## Typical usage
