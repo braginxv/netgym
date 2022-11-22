@@ -245,8 +245,7 @@ public class TestHttpAsyncClient {
         http.postFormData(PATH, HEADERS, formData, httpListener);
 
         Set<Pair<String, String>> headers = new LinkedHashSet<>(HEADERS);
-        headers.add(new Pair<>("Content-Type", "multipart/form-data;boundary=\""
-                + boundary + "\""));
+        headers.add(new Pair<>("Content-Type", "multipart/form-data;boundary=\"" + boundary + "\""));
 
         byte[] stringPartContent = ("--" + boundary + "\n" +
                 "Content-Disposition: form-data; name=\"" + stringField + "\"\n" +
@@ -286,7 +285,6 @@ public class TestHttpAsyncClient {
                 Thread.sleep(WAIT_RESPONSE_TIMEOUT);
             } catch (InterruptedException e) {
                 System.out.println("SocketClientTestImpl: waiting of the response was interrupted");
-                ;
             }
 
             assertEquals(new String(checkedBuffer), new String(buffer));

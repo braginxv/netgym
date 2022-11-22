@@ -33,8 +33,6 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ForkJoinPool;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Base class for all SSL operations (handshaking, incoming data, outgoing data) providing asynchronous (non-blocking)
@@ -100,10 +98,5 @@ abstract class AbstractSSLAction extends AsyncAction {
 
     void setChannelId(Integer channelId) {
         this.channelId = channelId;
-    }
-
-    void logAction(String message) {
-        Logger.getLogger("SSLAction").log(Level.INFO,
-                String.format("[%s %d] %s", getClass().getSimpleName(), channelId, message));
     }
 }
