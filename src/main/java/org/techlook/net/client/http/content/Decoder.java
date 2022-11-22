@@ -24,11 +24,8 @@
 
 package org.techlook.net.client.http.content;
 
-import org.techlook.net.client.http.client.HttpAsyncClient;
-
 import java.nio.channels.WritableByteChannel;
 import java.util.concurrent.ForkJoinPool;
-import java.util.logging.Logger;
 
 public enum Decoder {
     GZIP {
@@ -57,8 +54,6 @@ public enum Decoder {
             return TOKEN;
         }
     };
-
-    private final static Logger log = Logger.getLogger(HttpAsyncClient.class.getName());
 
     public boolean matchToken(String token) {
         return token().equals(token.trim().toLowerCase());

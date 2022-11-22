@@ -155,8 +155,6 @@ class SSLChannel extends AbstractSSLAction implements ChannelListener {
                 status = engine.getHandshakeStatus();
             }
             if (isHandshakingDone()) {
-                logAction(engine.getHandshakeStatus().toString());
-                logAction(engine.getSession().getCipherSuite());
                 reset();
             }
         } catch (Exception e) {

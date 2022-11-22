@@ -13,7 +13,7 @@ limited thread pool. Furthermore, different stages or operations of one connecti
 
 ![Thread model](images/netgym_thread_model.png)
 
-That is following operations execute in parallel increasing performance:
+Thus, the following operations are executed in parallel, increasing performance:
 
 1. TLS handshake/re-handshake in managed Thread Pool used for blocking operations
 1. Data encryption/decryption within a TLS connection

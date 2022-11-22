@@ -46,8 +46,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 public class HttpAsyncClient implements HttpConnection, ChannelListener {
@@ -62,8 +60,6 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
         public static final String CONNECT = "CONNECT";
         public static final String TRACE = "TRACE";
     }
-
-    private final static Logger log = Logger.getLogger(HttpAsyncClient.class.getName());
 
     private final String server;
     private final int port;
@@ -274,7 +270,6 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
     public void channelError(String message) {
         httpSession.get().getListener().failure(message);
         connectId.set(-1);
-        log.log(Level.SEVERE, message);
     }
 
     @Override
@@ -414,7 +409,7 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
             if (isConnecting.compareAndSet(false, true)) {
                 reconnectAndSend(buffer);
             } else {
-                sendViaTransport(buffer);
+                client.send(buffer, 0, buffer.length, connectId.get());
             }
         }
     }
@@ -428,7 +423,6 @@ public class HttpAsyncClient implements HttpConnection, ChannelListener {
                     client.send(buffer, 0, buffer.length, connectId.get());
                 } catch (IOException e) {
                     String errorMessage = Fault.AsyncClientError.format(e.getMessage());
-                    log.log(Level.SEVERE, errorMessage);
                 } finally {
                     synchronized (connecting) {
                         connecting.notify();

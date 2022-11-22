@@ -74,8 +74,6 @@ class OutgoingAction extends AbstractSSLAction {
                 return;
             }
             try {
-                logAction(engine.getHandshakeStatus().toString());
-                logAction(engine.getSession().getCipherSuite());
                 handleWrap(engine.wrap(outgoingAppData, outgoingNetData));
             } catch (SSLException e) {
                 closeOnError(e);

@@ -33,8 +33,6 @@ import org.techlook.net.client.http.content.WholeContentReader;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,8 +46,6 @@ public class HttpSession {
     private final static String CONTENT_ENCODING = "content-encoding";
     private final static String CONNECTION = "connection";
     private final static Pattern RESPONSE_HEAD = Pattern.compile("^(\\S+)\\s+(\\d+)\\s+(.+)$");
-
-    private final static Logger log = Logger.getLogger(HttpSession.class.getName());
 
     private final StringBuilder responseBuilder = new StringBuilder();
     private final Map<String, String> headers = new TreeMap<>();
@@ -157,7 +153,6 @@ public class HttpSession {
                 } else if (Decoder.Deflate.matchToken(method)) {
                     decompressionMethods.add(Decoder.Deflate);
                 } else {
-                    log.log(Level.SEVERE, Fault.UnsupportedCompressMethods.format(contentEncoding));
                     listener.failure(Fault.UnsupportedCompressMethods.format(contentEncoding));
                     return;
                 }
@@ -169,7 +164,6 @@ public class HttpSession {
             try {
                 contentLength = Long.parseLong(lengthValue);
             } catch (NumberFormatException e) {
-                log.log(Level.SEVERE, Fault.ContentLengthNotRecognized.format(lengthValue), e);
                 listener.failure(Fault.ContentLengthNotRecognized.format(lengthValue));
                 return;
             }
@@ -184,7 +178,6 @@ public class HttpSession {
             }
 
             if (contentLength > Integer.MAX_VALUE) {
-                log.log(Level.SEVERE, Fault.ContentSizeIsTooLarge.getDescription());
                 listener.failure(Fault.ContentSizeIsTooLarge.getDescription());
                 return;
             }
@@ -194,14 +187,12 @@ public class HttpSession {
             String transfer = headers.get(TRANSFER_ENCODING).trim().toLowerCase();
 
             if (!transfer.equals(TRANSFER_ENCODING_CHUNKED)) {
-                log.log(Level.SEVERE, Fault.TransferEncodingUnsupported.format(transfer));
                 listener.failure(Fault.TransferEncodingUnsupported.format(transfer));
                 return;
             }
 
             contentReader = new ChunkedContentReader(listener, residue, decompressionMethods, threadPool);
         } else {
-            log.log(Level.SEVERE, Fault.NonChunkedContentWithoutLength.getDescription());
             listener.failure(Fault.NonChunkedContentWithoutLength.getDescription());
         }
     }
