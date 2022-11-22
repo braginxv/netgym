@@ -108,17 +108,17 @@ public class PipeliningConnection implements HttpConnection {
 
     @Override
     public void postContent(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
-        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE can support HTTP Pipelining");
+        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE support HTTP Pipelining Connection");
     }
 
     @Override
     public void postWithEncodedParameters(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
-        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE can support HTTP Pipelining");
+        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE support HTTP Pipelining Connection");
     }
 
     @Override
     public void postFormData(String url, Set<Pair<String, String>> additionalHeaders, FormRequestData requestData, HttpListener listener) {
-        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE can support HTTP Pipelining");
+        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE support HTTP Pipelining Connection");
     }
 
     @Override
@@ -126,14 +126,14 @@ public class PipeliningConnection implements HttpConnection {
                                Set<Pair<String, String>> headers,
                                Set<Pair<String, String>> urlParameters,
                                HttpListener listener) {
-        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE can support HTTP Pipelining");
+        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE support HTTP Pipelining Connection");
     }
 
     @Override
     public void options(
             Set<Pair<String, String>> headers,
             HttpListener listener) {
-        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE can support HTTP Pipelining");
+        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE support HTTP Pipelining Connection");
     }
 
     private synchronized void throttle() {
