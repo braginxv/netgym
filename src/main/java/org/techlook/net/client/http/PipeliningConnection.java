@@ -37,7 +37,7 @@ import java.util.Set;
  * therefore it is recommended to send requests with slight delays.
  */
 public class PipeliningConnection implements HttpConnection {
-    public static final long DEFAULT_SENDING_INTERVAL = 50;
+    public static final long DEFAULT_SENDING_INTERVAL = 10;
 
     private final HttpAsyncClient httpClient;
     private final long sendingTimeInterval;

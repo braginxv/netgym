@@ -1,4 +1,4 @@
-## The '__netgym__' network client for java apps
+## __Netgym__ is a network client for JVM
 
 'netgym' is a compact high performance asynchronous network client for using various socket-based (TCP and UDP) connections.
 Among TCP features it supports secure socket connections (TLS), HTTP/1.1, including:
@@ -15,14 +15,14 @@ limited thread pool. Furthermore, different stages or operations of one connecti
 
 Thus, the following operations are executed in parallel, increasing performance:
 
-1. TLS handshake/re-handshake in managed Thread Pool used for blocking operations
+1. TLS handshake/re-handshake in a dedicated managed Thread Pool used for blocking operations
 1. Data encryption/decryption within a TLS connection
 1. Gzip/deflate data compressing/uncompressing
 
 ## Requirements
 
-Runtime builds of "netgym" library don't depend on other packages and require only JDK 1.7 or latter versions. Assembling
-of this package depends on JUnit 4 and Mockito testing frameworks.
+Runtime builds of this library don't depend on other packages and require only JDK 1.7 or later. Assembling
+depends on JUnit 4 and Mockito testing frameworks.
 
 ## Adding netgym to project
 
