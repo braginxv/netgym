@@ -27,14 +27,14 @@ package org.techlook.net.client.http;
 import java.nio.charset.Charset;
 
 /**
- * Special form field for the file transmitting
+ * Special form field for a file transmitting
  */
 public class FormFileField extends FormField {
     /**
-     * @param name         name of the form field
-     * @param fileName     uploading file name
-     * @param fileContent  content of the uploading file
-     * @param contentType  MIME-type of the content, may be null
+     * @param name         name
+     * @param fileName     name of an uploaded file
+     * @param fileContent  content of an uploading file
+     * @param contentType  MIME-type of a content, may be null
      * @param charset      content charset, may be null
      */
     public FormFileField(String name, String fileName, byte[] fileContent, String contentType, Charset charset) {

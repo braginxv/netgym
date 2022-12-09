@@ -33,16 +33,15 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Singleton instance of network client and it's SSL version to be used for performing
- * all network operations within this library.
+ * A singleton instance of network client used by all socket connection within this library.
  */
 public class ClientSystem {
     private static final AtomicReference<SocketClient> client = new AtomicReference<>();
     private static final AtomicReference<SocketClient> sslClient = new AtomicReference<>();
 
     /**
-     * Getting async client
-     * @return client
+     * Instance (Singleton)
+     * @return instance
      */
     public static SocketClient client() {
         try {
@@ -55,8 +54,8 @@ public class ClientSystem {
     }
 
     /**
-     * Getting SSL-version async client
-     * @return SSL client
+     * SSL-version
+     * @return SSL client instance
      */
     public static SocketClient sslClient(KeyManager[] keyManagers, TrustManager[] trustManagers) {
         sslClient.compareAndSet(null, new SSLSocketClient(client(), keyManagers, trustManagers));

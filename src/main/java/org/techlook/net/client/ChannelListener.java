@@ -24,20 +24,15 @@
 
 package org.techlook.net.client;
 
-/**
- * Listening channel's events
- */
 public interface ChannelListener {
     /**
-     * Occur when something went wrong during working of channel. All error kinds are assumed to be fatal due the
-     * continuation of ordinary processing this channel not to be possible
-     * @param message String message about error
+     * The channel ended up with an error
+     * @param message error message
      */
     void channelError(String message);
 
     /**
-     * A data chunk was received and it should be processed in next phase
-     * @param chunk which is received
+     * The channel received a chunk
      */
     void chunkIsReceived(byte[] chunk);
 

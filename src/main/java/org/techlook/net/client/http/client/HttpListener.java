@@ -32,8 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Base class to receive http parsing messages. As soon as http-response parts will have been received they are
- * asynchronously passed to this listener.
+ * Base class for receive http messages.
  */
 public abstract class HttpListener {
     private final static String CONTENT_TYPE = "content-type";
@@ -42,7 +41,7 @@ public abstract class HttpListener {
     protected Charset charset;
 
     /**
-     * At once HTTP headers have been parsed they are fallen here, then the charset picks from them.
+     * Once the HTTP headers are parsed they falls here, then a charset is picked.
      * @param headers  headers in key-value format
      */
     public final void respondHeaders(Map<String, String> headers) {
@@ -66,7 +65,7 @@ public abstract class HttpListener {
     }
 
     /**
-     * The response status consisting the Code, version of HTTP and description
+     * The response status consisting (code, HTTP version, description)
      * @param code         HTTP response code
      * @param httpVersion  HTTP version
      * @param description  description
@@ -74,19 +73,19 @@ public abstract class HttpListener {
     public abstract void responseCode(int code, String httpVersion, String description);
 
     /**
-     * is called when byte chunk of the content has been received
+     * is called when a byte chunk is received
      * @param chunk  transmitting data chunk
      */
     public abstract void respond(byte[] chunk);
 
     /**
-     * occurs when something went wrong during response receiving
+     * occurs when something went wrong while receiving a response
      * @param message  error message
      */
     public void failure(String message) {}
 
     /**
-     * response receiving has been completed successfully
+     * receiving of a response is completed successfully
      */
     public abstract void complete();
 
@@ -99,13 +98,13 @@ public abstract class HttpListener {
     }
 
     /**
-     * respond HTTP headers down to hierarchy of inheritance
+     * send HTTP headers down the inheritance hierarchy
      * @param headers  headers in key-value format
      */
     public void respondHttpHeaders(Map<String, String> headers) {}
 
     /**
-     * calls when channel connection has been closed and will be no more events from it
+     * calls when connection is closed
      */
     public abstract void connectionClosed();
 }

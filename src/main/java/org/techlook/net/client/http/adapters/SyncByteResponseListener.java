@@ -53,8 +53,8 @@ public class SyncByteResponseListener extends ByteResponseListener {
     }
 
     /**
-     * use this completion to get response synchronously
-     * @return  completion of getting response
+     * use this completion to get the response synchronously
+     * @return  completion of getting the response
      */
     public ResultedCompletion<Response> watchCompletion() {
         return completion;

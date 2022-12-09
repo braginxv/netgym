@@ -42,9 +42,9 @@ public class Response {
      * @param code                 response code
      * @param httpVersion          version of HTTP
      * @param responseDescription  description
-     * @param headers              response headers in key-value format
-     * @param content              content if it presented, may be null
-     * @param charset              charset if it presented, may be null
+     * @param headers              response headers in a key-value format
+     * @param content              content if it's presented, may be null
+     * @param charset              charset if it's presented, may be null
      */
     public Response(int code,
                     String httpVersion,

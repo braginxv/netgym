@@ -31,13 +31,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Form data to be sent, consists input and file upload fields
+ * consists input and loadable file fields
  */
 public class FormRequestData {
     private final List<FormField> fields = new LinkedList<>();
 
     /**
-     * Add input form field with raw byte array content data
+     * Add input form field containing a raw byte array data
      * @param name          name of the field
      * @param value         raw byte array data
      * @param contentType   MIME-type of the content, may be null
@@ -48,11 +48,11 @@ public class FormRequestData {
     }
 
     /**
-     * Add input form field with string content
-     * @param name          name of the field
+     * Add an input form field with a string
+     * @param name          name of a field
      * @param value         string value
-     * @param contentType   MIME-type of the content, may be null
-     * @param valueCharset  charset of the content, may be null
+     * @param contentType   MIME-type of a content, may be null
+     * @param valueCharset  charset of a content, may be null
      */
     public void addInputField(String name, String value, String contentType, Charset valueCharset) {
         byte[] content = value.getBytes(valueCharset != null ? valueCharset : StandardCharsets.UTF_8);
@@ -61,11 +61,11 @@ public class FormRequestData {
 
     /**
      * Add input form field with raw byte array content data
-     * @param name          name of the field
-     * @param fileName      uploading file name
-     * @param contentType   MIME-type of the content, may be null
+     * @param name          name of a field
+     * @param fileName      file name
+     * @param contentType   MIME-type of a content, may be null
      * @param fileContent   the file content itself, may be null
-     * @param charset       charset of the content, may be null
+     * @param charset       charset of a content, may be null
      */
     public void addFileField(String name, String fileName, byte[] fileContent, String contentType, Charset charset) {
         fields.add(new FormFileField(name, fileName, fileContent, contentType, charset));
@@ -79,7 +79,7 @@ public class FormRequestData {
     }
 
     /**
-     * @return true if no fields
+     * @return true if there are no fields
      */
     public boolean isEmpty() {
         return fields.isEmpty();
