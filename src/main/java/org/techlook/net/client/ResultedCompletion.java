@@ -25,21 +25,22 @@
 package org.techlook.net.client;
 
 /**
- * The completion which finishing with the result
+ * Completion that ends with a result
  */
 public class ResultedCompletion<T> extends Completion {
     private Either<String, T> completionResult;
 
     /**
-     * Create Completion instance without waiting completion time interval
+     * Create Completion
      */
     public ResultedCompletion() {
         super();
     }
 
     /**
-     * Create Completion instance with waiting completion time interval
-     * @param timeout is time interval user thread will continue running despite the completion hasn't been finished
+     * Create Completion with a waiting timeout
+     *
+     * @param timeout is a timeout
      */
     public ResultedCompletion(int timeout) {
         super(timeout);
@@ -55,8 +56,7 @@ public class ResultedCompletion<T> extends Completion {
     }
 
     /**
-     * finish with specified result
-     * @param result  result
+     * this method is called by the asynchronous operation
      */
     public void finish(T result) {
         completionResult = Either.right(result);
@@ -64,7 +64,7 @@ public class ResultedCompletion<T> extends Completion {
     }
 
     /**
-     * failure with error message
+     * failure with an error message
      * @param message  error message
      */
     public void failure(String message) {
@@ -73,9 +73,9 @@ public class ResultedCompletion<T> extends Completion {
     }
 
     /**
-     * blocks thread until result appears
-     * @return  Either of result
-     * @throws InterruptedException  if the awaiting interrupted
+     * blocks thread until the result appears
+     * @return  Either of the result
+     * @throws InterruptedException  if the awaiting interrupts
      */
     public Either<String, T> awaitResult() throws InterruptedException {
         super.await();

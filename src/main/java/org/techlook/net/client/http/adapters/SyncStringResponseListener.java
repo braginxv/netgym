@@ -29,8 +29,8 @@ import org.techlook.net.client.Either;
 import org.techlook.net.client.ResultedCompletion;
 
 /**
- * Use this class to get the entire response with string content,
- * blocking the user thread until it is completely received.
+ * Use this class to get the entire response with a string content.
+ * It blocking the user thread until the response is completely received.
  */
 public class SyncStringResponseListener extends StringResponseListener {
     private ResultedCompletion<StringResponse> completion = new ResultedCompletion<>();
@@ -53,8 +53,8 @@ public class SyncStringResponseListener extends StringResponseListener {
     }
 
     /**
-     * use this completion to get response synchronously
-     * @return  completion of getting response
+     * use this completion to get the response synchronously
+     * @return  completion of getting the response
      */
     public ResultedCompletion<StringResponse> watchCompletion() {
         return completion;

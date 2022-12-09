@@ -35,9 +35,9 @@ public class FormField {
     protected String contentTypeSpec;
 
     /**
-     * @param name         name of the form field
-     * @param value        value of the form field
-     * @param contentType  MIME-type of the content, may be null
+     * @param name         form field name
+     * @param value        value
+     * @param contentType  MIME-type of a content, may be null
      * @param charset      content charset, may be null
      */
     public FormField(String name, byte[] value, String contentType, Charset charset) {

@@ -24,7 +24,7 @@ Thus, the following operations are executed in parallel, increasing performance:
 Runtime builds of this library don't depend on other packages and require only JDK 1.7 or later. Assembling
 depends on JUnit 4 and Mockito testing frameworks.
 
-## Adding netgym to project
+## Add netgym to a project
 
 If you use Maven then insert the following
 
@@ -94,7 +94,7 @@ asynchronously to prevent blocking userspace thread (such as UI thread).
 
 ### Synchronous flow
 
-Sometimes thread could be blocked until a response is received. In these cases you'd use synchronous
+Sometimes the control thread may be blocked until a response is received. In these cases you'd use synchronous
 adapters like this:
 
 ```java
@@ -172,7 +172,7 @@ adapters like this:
   ClientSystem.client().awaitTerminating();
 ```
 Note that there is no need to engage auxiliary threads through `subscribeOn()` cuz `netgym` client optimally
-parallels network connections itself and performs requests asynchronously.
+parallelizes network connections itself and performs requests asynchronously.
 
 ## HTTP connection types
 
@@ -187,9 +187,9 @@ The client supports following connections (HTTP/1.1)
    These connections are also called "keep-alive".
 3. `simpleHttpClient.configureConnection(SimpleHttpClient.ConnectionType.Pipelining)`
    Similar to Persistent connections the Pipelining connection is used to sending multiple requests, but it doesn't
-   wait the response from previous request to send a new one, hence this connection is faster than the persistent
+   wait the response of the previous request to send a new one, hence this connection is faster than the persistent
    connection. In spite of Pipelining connections are the part of standard HTTP/1.1 they may not be supported or
-   may be supported partially by many servers.
+   may be supported partially by many servers (in particular to prevent DoS-attacks).
 4. `simpleHttpClient.configurePipeliningConnection(TIME_DELAY_BETWEEN_REQUEST_SENDING)`
    Sometimes a remote server cannot process multiple requests sent all at once in Pipelining connection, but it could be done in this way if
    requests were sent with a little delay. Invoke this method to use Pipelining connection and specify delay in ms between

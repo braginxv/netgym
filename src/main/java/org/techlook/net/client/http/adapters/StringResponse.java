@@ -28,7 +28,7 @@ import java.nio.charset.Charset;
 import java.util.Map;
 
 /**
- * Aggregated HTTP server response as string
+ * Aggregated HTTP server response as a string
  */
 public class StringResponse {
     private final int code;
@@ -43,8 +43,8 @@ public class StringResponse {
      * @param httpVersion          version of HTTP
      * @param responseDescription  description
      * @param headers              response headers in key-value format
-     * @param content              string content if it presented, may be null
-     * @param charset              charset if it presented, may be null
+     * @param content              string content if it's presented, may be null
+     * @param charset              charset if it's presented, may be null
      */
     public StringResponse(int code,
                     String httpVersion,

@@ -36,9 +36,9 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * In this client HTTP requests follow each other using same connection to the server, thus each request waits till
- * another request is completed. This client may me used in cases if server supports keep-alive connections but
- * pipelining doesn't.
+ * In this case HTTP requests follow each other using the same connection, so each request waits until
+ * the previous to complete. This connection kind may be used in cases when the remote host supports
+ * keep-alive connections but pipelining doesn't.
  */
 public class SequentialConnection implements HttpConnection {
     private static final int MAX_WAITING_REQUESTS_IN_SEQUENCE = 128;
@@ -49,11 +49,11 @@ public class SequentialConnection implements HttpConnection {
     private final AtomicBoolean isRequestRunning = new AtomicBoolean(false);
 
     /**
-     * Creation of this client and connection parameters saving
+     * Constructor
      *
-     * @param server      the remote server we need connect to
+     * @param server      a remote host
      * @param port        TCP port
-     * @param asyncClient asynchronous SocketClient instance to be used as transport for transmitting request
+     * @param asyncClient asynchronous SocketClient instance used as a transport
      */
     public SequentialConnection(String server, int port, SocketClient asyncClient) {
         httpClient = new HttpAsyncClient(server, port, true, asyncClient);

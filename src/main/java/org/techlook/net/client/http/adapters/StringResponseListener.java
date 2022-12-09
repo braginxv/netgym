@@ -31,7 +31,7 @@ import org.techlook.net.client.Fault;
 import java.io.UnsupportedEncodingException;
 
 /**
- * This listener is used to get the string content in its entirety, not in chunks.
+ * is used to get the whole string content, not chunks.
  */
 public abstract class StringResponseListener extends ByteResponseListener {
     @Override
@@ -66,7 +66,7 @@ public abstract class StringResponseListener extends ByteResponseListener {
     }
 
     /**
-     * Implement this method to obtain whole string response
+     * Implement this method to obtain the whole string response
      * @param response  string response
      */
     public abstract void respondString(Either<String, StringResponse> response);

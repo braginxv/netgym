@@ -30,18 +30,14 @@ import java.nio.charset.Charset;
 import java.util.Set;
 
 /**
- * Base interface comprises http methods. All methods are supposed to be asynchronous. Connecting to the remote server
- * doesn't places here it's assumed to be established for HTTP client itself and therefore specified methods
- * can be called multiple times using the same connection. The additional headers don't basic headers which
- * are required for appropriate HTTP method. For example the GET method adds Connection and
- * Accept-Encoding headers hence you shouldn't add they as additional headers.
+ * An interface containing methods for making HTTP requests. All methods are assumed to be asynchronous.
  */
 public interface HttpConnection {
     /**
      * HTTP HEAD method
-     * @param url                the request URL to be fetched
-     * @param additionalHeaders  additional user defined HTTP headers
-     * @param parameters         request parameters which will be added to the URL
+     * @param url                request URL
+     * @param additionalHeaders  user-defined HTTP headers
+     * @param parameters         request parameters to be url-encoded  
      * @param listener           HTTP listener
      */
     void head(String url,
@@ -51,9 +47,9 @@ public interface HttpConnection {
 
     /**
      * HTTP GET method
-     * @param url                the request URL to be fetched
-     * @param additionalHeaders  additional user defined HTTP headers
-     * @param parameters         request parameters which will be added to the URL
+     * @param url                request URL
+     * @param additionalHeaders  user-defined HTTP headers
+     * @param parameters         request parameters to be url-encoded
      * @param listener           HTTP listener
      */
     void get(String url,
@@ -63,10 +59,10 @@ public interface HttpConnection {
 
     /**
      * HTTP PUT method
-     * @param url                the request URL
-     * @param additionalHeaders  additional user defined HTTP headers
-     * @param urlParameters      request parameters which will be added to the URL
-     * @param contentType        MIME-type of the content
+     * @param url                request URL
+     * @param additionalHeaders  user-defined HTTP headers
+     * @param urlParameters      request parameters to be url-encoded
+     * @param contentType        MIME-type of a content
      * @param contentCharset     content charset
      * @param content            content
      * @param listener           HTTP listener
@@ -82,9 +78,9 @@ public interface HttpConnection {
     /**
      * HTTP DELETE method
      * @param url                the request URL
-     * @param additionalHeaders  additional user defined HTTP headers
-     * @param urlParameters      request parameters which will be added to the URL
-     * @param contentType        MIME-type of the content (optional)
+     * @param additionalHeaders  user-defined HTTP headers
+     * @param urlParameters      request parameters to be url-encoded
+     * @param contentType        MIME-type of a content (optional)
      * @param contentCharset     content charset (optional)
      * @param content            content (optional)
      * @param listener           HTTP listener
@@ -100,9 +96,9 @@ public interface HttpConnection {
     /**
      * HTTP PATCH method
      * @param url                the request URL
-     * @param additionalHeaders  additional user defined HTTP headers
-     * @param urlParameters      request parameters which will be added to the URL
-     * @param contentType        MIME-type of the content
+     * @param additionalHeaders  user-defined HTTP headers
+     * @param urlParameters      request parameters to be url-encoded
+     * @param contentType        MIME-type of a content
      * @param contentCharset     content charset
      * @param content            content
      * @param listener           HTTP listener
@@ -118,8 +114,8 @@ public interface HttpConnection {
     /**
      * HTTP CONNECT method
      * @param url                the request URL to be fetched
-     * @param additionalHeaders  additional user defined HTTP headers
-     * @param parameters         request parameters which will be added to the URL
+     * @param additionalHeaders  user-defined HTTP headers
+     * @param parameters         request parameters to be url-encoded
      * @param listener           HTTP listener
      */
     void connect(String url,
@@ -130,8 +126,8 @@ public interface HttpConnection {
     /**
      * HTTP TRACE method
      * @param url                the request URL to be fetched
-     * @param additionalHeaders  additional user defined HTTP headers
-     * @param parameters         request parameters which will be added to the URL
+     * @param additionalHeaders  user-defined HTTP headers
+     * @param parameters         request parameters to be url-encoded
      * @param listener           HTTP listener
      */
     void trace(String url,
@@ -140,11 +136,11 @@ public interface HttpConnection {
               HttpListener listener);
 
     /**
-     * HTTP POST method for sending arbitrary content. Request parameters will be added to URL.
+     * HTTP POST method
      * @param url                the request URL
-     * @param additionalHeaders  additional user defined HTTP headers
-     * @param urlParameters      request parameters which will be added to the URL
-     * @param contentType        MIME-type of the content
+     * @param additionalHeaders  user-defined HTTP headers
+     * @param urlParameters      request parameters to be url-encoded
+     * @param contentType        MIME-type of a content
      * @param contentCharset     content charset
      * @param content            content
      * @param listener           HTTP listener
@@ -158,9 +154,9 @@ public interface HttpConnection {
                      HttpListener listener);
 
     /**
-     * HTTP POST method for sending encoded parameters in content (body).
+     * HTTP POST method sending url-encoded parameters in its body
      * @param url                the request URL
-     * @param additionalHeaders  additional user defined HTTP headers
+     * @param additionalHeaders  user-defined HTTP headers
      * @param parameters         request parameters which will be encoded into the request body
      * @param listener           HTTP listener
      */
@@ -170,9 +166,9 @@ public interface HttpConnection {
                                    HttpListener listener);
 
     /**
-     * HTTP POST method for sending form data in content (body).
+     * HTTP POST method that sends multipart form data
      * @param url                the request URL
-     * @param additionalHeaders  additional user defined HTTP headers
+     * @param additionalHeaders  user-defined HTTP headers
      * @param requestData        the form data to be sent
      * @param listener           HTTP listener
      */
@@ -182,7 +178,7 @@ public interface HttpConnection {
                       HttpListener listener);
 
     /**
-     * HTTP OPTIONS method with specified URL within the server
+     * HTTP OPTIONS
      * @param url       the request URL
      * @param listener  HTTP listener
      */
@@ -192,7 +188,7 @@ public interface HttpConnection {
                         HttpListener listener);
 
     /**
-     * HTTP OPTIONS method for obtain properties of the server itself
+     * HTTP OPTIONS method intending to get properties of a remote host
      * @param listener  HTTP listener
      */
     void options(

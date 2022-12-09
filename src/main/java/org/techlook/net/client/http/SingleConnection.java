@@ -32,9 +32,7 @@ import java.nio.charset.Charset;
 import java.util.Set;
 
 /**
- * Single connection supposes each HTTP request opens and closes one TCP connection. This type of HTTP client should
- * use in cases when server doesn't support keep-alive connections (in particular pipelining connections). To be assumed
- * only one instance of the SocketClient will be used to performing all requests.
+ * Single connection establishes a TCP connection, performs a request, and closes the connection.
  */
 public class SingleConnection implements HttpConnection {
     private final String server;
@@ -42,10 +40,10 @@ public class SingleConnection implements HttpConnection {
     private final SocketClient asyncClient;
 
     /**
-     * Creation of this client and connection parameters saving
-     * @param server       the remote server we need connect to
+     * Constructor
+     * @param server       a remote host
      * @param port         TCP port
-     * @param asyncClient  asynchronous SocketClient instance to be used as transport for transmitting request
+     * @param asyncClient  asynchronous SocketClient instance used as a transport
      */
     public SingleConnection(String server, int port, SocketClient asyncClient) {
         this.server = server;

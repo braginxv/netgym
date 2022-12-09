@@ -115,7 +115,7 @@ public class SSLSocketClient implements SocketClient {
 
     private SSLChannel configureSSLEngine(SocketAddress server, ChannelListener listener) {
         if (!(server instanceof InetSocketAddress)) {
-            throw new IllegalArgumentException("Server address should be an InetSocketAddress for SSL async client");
+            throw new IllegalArgumentException("Server address should be an InetSocketAddress");
         }
 
         SSLContext context;

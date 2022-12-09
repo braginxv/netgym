@@ -31,29 +31,29 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Basic class to perform processing through chunks during the networking phase
+ * This is the main stuff in the library to execute a bit of some work in the Fork-join Pool.
+ * Computational intensive actions such as gzip deflate/inflate, TLS encrypt/decrypt are all AsyncAction.
  */
 public abstract class AsyncAction implements Callable<Void> {
     /**
-     * tune it, do not set value less than 3
-     * The larger queue size produces higher parallelism level for the various stages of connection,
-     * but it consumes more memory
-     */
-    private static final int MAX_QUEUE_FILL = AsyncSocketClient.PARALLELISM_LEVEL * 3 / 2;
-
-    /**
-     * incoming chunks for further processing
+     * A coordinating queue designed to alleviate undesirable effects caused by different processing rates
+     * in different Async Actions
+     *
+     * Do not set value less than 3
+     *
+     * A larger queue size entails a less synchronization between Actions, but leads to consuming of more memory
      */
     protected final ConcurrentLinkedQueue<ByteBuffer> chunks = new ConcurrentLinkedQueue<>();
+    private static final int MAX_QUEUE_FILL = AsyncSocketClient.PARALLELISM_LEVEL * 5 / 2;
 
     private final AtomicBoolean shouldContinue = new AtomicBoolean();
     private final ForkJoinPool pool;
     private volatile ForkJoinTask<Void> completionTask;
 
     /**
-     * Creation
+     * Constructor
      *
-     * @param pool Common ForkJoinPoll withing client
+     * @param pool Shared Fork-Join Pool
      */
     public AsyncAction(ForkJoinPool pool) {
         this.pool = pool;
@@ -67,9 +67,9 @@ public abstract class AsyncAction implements Callable<Void> {
     }
 
     /**
-     * Wake up action to process next bunch of chunks if current portion has been processed.
-     * If chunks queue size exceeds max limit and processing of the previous portion of chunks hasn't been processed yet
-     * then current thread waits completion of the previous task using the work stealing algorithm in Fork Join Pool
+     * Wake up the action to process a next bunch of chunks if the current portion has been processed.
+     * If the queue size exceeds the max limit and processing of the previous portion of chunks hasn't been yet completed
+     * then current thread waits a completion of the previous task using a work stealing algorithm in the Fork Join Pool
      *
      * @see ForkJoinPool
      */
@@ -88,11 +88,6 @@ public abstract class AsyncAction implements Callable<Void> {
         }
     }
 
-    /**
-     * used by Thread Pool to fork new processing
-     *
-     * @return nothing
-     */
     @Override
     public Void call() {
         do {
@@ -102,7 +97,7 @@ public abstract class AsyncAction implements Callable<Void> {
     }
 
     /**
-     * blocks current thread until all remaining chunks are processed
+     * blocks the current thread until all remaining chunks are processed
      */
     public void waitFinishing() {
         if (completionTask != null) {
@@ -113,16 +108,14 @@ public abstract class AsyncAction implements Callable<Void> {
     }
 
     /**
-     * test whether the last processing task has been completed
-     *
-     * @return true if the last processing task has been completed
+     * @return true if the last task has been completed
      */
     public boolean isTaskCompleted() {
         return completionTask == null || completionTask.isDone();
     }
 
     /**
-     * override this method to implement chunks processing payload
+     * override this method to implement chunk processing logic
      */
     protected abstract void processAction();
 }
