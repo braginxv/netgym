@@ -37,7 +37,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Parses and recognizes the HTTP parts from the bytes input stream.
+ * Parses and recognizes the HTTP parts from the input stream.
  */
 public class HttpSession {
     private final static String CONTENT_LENGTH = "content-length";
@@ -63,7 +63,7 @@ public class HttpSession {
     /**
      * Creation
      * @param listener    HTTP listener
-     * @param threadPool  common fork-join thread pool in this library
+     * @param threadPool  shared fork-join thread pool
      */
     public HttpSession(HttpListener listener, ForkJoinPool threadPool) {
         this.listener = listener;
@@ -79,8 +79,8 @@ public class HttpSession {
     }
 
     /**
-     * get events listener
-     * @return the http listener
+     * event listener
+     * @return http listener
      */
     public HttpListener getListener() {
         return listener;

@@ -25,34 +25,34 @@
 package org.techlook.net.client;
 
 /**
- * Either combines asynchronous result with possibles proper (right) or not like that (wrong, left) values
- * @param <L> Type of wrong result
- * @param <R> Type of proper result
+ * Container including the result of an asynchronous action to either a wrong or a successful value
+ * @param <L> A Type of a wrong result
+ * @param <R> A Type of a right result
  */
 public abstract class Either<L, R> {
     /**
-     * @return aggregated proper result
+     * @return right value
      */
     public abstract BoxedResult<R> right();
 
     /**
-     * @return aggregated wrong result
+     * @return wrong value
      */
     public abstract BoxedResult<L> left();
 
     /**
-     * Common interface to aggregate result
+     * Interface for result aggregation
      * @param <T> type of result
      */
     public interface BoxedResult<T> {
         /**
-         * pass aggregated result to consumer asynchronously when it will be formed
-         * @param consumer an object that can obtain aggregated result
+         * pass the result to a consumer asynchronously when it will appear
+         * @param consumer result consumer
          */
         void apply(Consumer<? super T> consumer);
 
         /**
-         * synchronously wait result blocking the thread until result will be formed
+         * wait the result until it appears
          * @return result
          * @throws NoResultException if no result
          */
@@ -60,22 +60,22 @@ public abstract class Either<L, R> {
     }
 
     /**
-     * create Either with the proper result
-     * @param result proper result
-     * @param <L> left result
-     * @param <R> right result
-     * @return new Either with proper result
+     * create Either with a right value
+     * @param result resulted value
+     * @param <L> wrong value type
+     * @param <R> right value type
+     * @return new Either with a right value
      */
     public static <L, R> Either<L, R> right(R result)  {
         return new Right<>(result);
     }
 
     /**
-     * create Either with the wrong result
-     * @param leftResult wrong result
-     * @param <L> left result
-     * @param <R> right result
-     * @return new Either with wrong result
+     * create Either with a wrong value
+     * @param leftResult wrong value
+     * @param <L> wrong value type
+     * @param <R> right result type
+     * @return new Either with a wrong value
      */
     public static <L, R> Either<L, R> left(L leftResult)  {
         return new Left<>(leftResult);

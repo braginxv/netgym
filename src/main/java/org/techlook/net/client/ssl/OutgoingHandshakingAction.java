@@ -54,7 +54,7 @@ class OutgoingHandshakingAction extends OutgoingAction {
     protected void handleWrap(SSLEngineResult result) {
         switch (result.getStatus()) {
             case BUFFER_UNDERFLOW:
-                throw new IllegalStateException("Unreachable point within the outgoing handshake");
+                throw new IllegalStateException("Unreachable point");
             case BUFFER_OVERFLOW:
                 enlargeOutgoingNetBuffer();
                 break;

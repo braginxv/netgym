@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * This listener is used to get the byte content in its entirety, not in chunks.
+ * This listener is used to get the whole byte content, not chunks.
  */
 public abstract class ByteResponseListener extends HttpListener {
     private final ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -87,7 +87,7 @@ public abstract class ByteResponseListener extends HttpListener {
     }
 
     /**
-     * Implement this method to obtain whole byte response
+     * Implement this method to obtain the whole byte response
      * @param response  byte response
      */
     public abstract void respond(Either<String, Response> response);

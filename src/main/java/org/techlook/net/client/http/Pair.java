@@ -27,7 +27,7 @@ package org.techlook.net.client.http;
 import java.util.Objects;
 
 /**
- * Its a simple class to aggregate key-value pair
+ * A simple class containing a key-value pair
  */
 public class Pair<K, V> {
     private final K key;

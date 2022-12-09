@@ -25,24 +25,24 @@
 package org.techlook.net.client;
 
 public enum Fault {
-    AsyncClientError("Async client common error: %s"),
-    AsyncClientChannelConnectError("Async client: channel not connected"),
+    AsyncClientError("Async client general error: %s"),
+    AsyncClientChannelConnectError("Async client: the channel is not connected"),
     AsyncClientChannelConfigureError("Client channel setup error"),
     AsyncClientChannelWriteError("Client channel write error"),
     AsyncClientChannelReadError("Client channel read error"),
     AsyncClientChannelClosingError("Client channel close error"),
     BadEncoding("Bad encoding: %s"),
-    NonChunkedContentWithoutLength("Content length or chuncked response not specified"),
-    ContentLengthNotRecognized("Content length not recognized: %s"),
-    ContentSizeIsTooLarge("Content size is too large and content cannot be received whole at once"),
-    TransferEncodingUnsupported("Only 'chunked' transfer encoding with whole single content compressing is supported, but server responded: %s"),
+    NonChunkedContentWithoutLength("A content length or a chuncked response is not specified"),
+    ContentLengthNotRecognized("A content length is not recognized: %s"),
+    ContentSizeIsTooLarge("A content size is too large and a content cannot be received entirely at once"),
+    TransferEncodingUnsupported("Only 'chunked' transfer encoding is supported, but server responded: %s"),
     UnsupportedCompressMethods("Only GZIP, Deflate methods or their combinations are supported, but server responded: %s"),
-    ByteBufferFillError("Error during fill byte buffer: %s"),
-    RequiredSessionHasBeenClosed("Response cannot be processing because corresponding session has been closed"),
-    DecompressionError("Error during decompression of response content: %s"),
+    ByteBufferFillError("An error occurred while filling the byte buffer: %s"),
+    RequiredSessionHasBeenClosed("A response cannot be processed because the corresponding session has been closed"),
+    DecompressionError("An error occurred while decompression of the response content: %s"),
     SSLError("SSL error: %s"),
     BAD_RESPONSE_HEAD("Bad response head: %s"),
-    ForkJoinError("Error during fork-join pool multithreading: %s");
+    ForkJoinError("An error occurred while the fork-join pool submits task: %s");
 
 
     private final String description;

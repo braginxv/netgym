@@ -25,29 +25,29 @@
 package org.techlook.net.client;
 
 /**
- * This class is used when the synchronous result is expected in user thread.
+ * Watching the completion of an asynchronous operation
  */
 public class Completion {
     private volatile boolean inProgress = true;
     private volatile int timeout;
 
     /**
-     * Create Completion instance without waiting completion time interval
+     * Create Completion
      */
     public Completion() {
     }
 
     /**
-     * Create Completion instance with waiting completion time interval
+     * Create Completion with a waiting timeout
      *
-     * @param timeout is time interval user thread will continue running despite the completion hasn't been finished
+     * @param timeout is a timeout
      */
     public Completion(int timeout) {
         this.timeout = timeout;
     }
 
     /**
-     * this method is called by subject that controls the finishing
+     * this method is called by the asynchronous operation
      */
     public synchronized void finish() {
         inProgress = false;
@@ -56,9 +56,9 @@ public class Completion {
     }
 
     /**
-     * blocks user thread and waits completion
+     * blocks the user thread until the asynchronous operation is completed
      *
-     * @throws InterruptedException if waiting was interrupted
+     * @throws InterruptedException if a waiting was interrupted
      */
     public synchronized void await() throws InterruptedException {
         if (inProgress) {
@@ -71,9 +71,9 @@ public class Completion {
     }
 
     /**
-     * Check whether completion has done
+     * Check whether the completion has done
      *
-     * @return true if finished
+     * @return true if it's done
      */
     public boolean isFinished() {
         return !inProgress;

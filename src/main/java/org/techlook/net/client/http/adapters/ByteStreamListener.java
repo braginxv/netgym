@@ -34,13 +34,13 @@ import java.io.PipedOutputStream;
 
 /**
  * One of most convenient way to obtain large HTTP response content. Just create this listener and get toInputStream()
- * input stream, then read it in general way as ordinary stream. Thus, dependent what you need
+ * input stream, then read it as an ordinary stream. Thus, depending on what you need
  *   ByteStreamListener byteStreamListener = new ByteStreamListener(...);
  *   new DataInputStream(byteStreamListener.toInputStream()). ... or
  *   new BufferedReader(new InputStreamReader(byteStreamListener.toInputStream())) ...
  *
- * The obtained input stream blocks user thread if it has no data, it is uncompleted
- * and until new portion of data is received.
+ * The obtained input stream blocks user thread if it has no data and it is uncompleted
+ * and until a new portion of data is received.
  */
 public abstract class ByteStreamListener extends HttpListener {
     protected final PipedOutputStream outputStream = new PipedOutputStream();
@@ -77,7 +77,7 @@ public abstract class ByteStreamListener extends HttpListener {
     }
 
     /**
-     * @return  InputStream stream to synchronously read
+     * @return  InputStream - stream to be read synchronously
      */
     public InputStream toInputStream() {
         return inputStream;

@@ -32,32 +32,34 @@ import java.nio.charset.Charset;
 import java.util.Set;
 
 /**
- * This is the most advanced and performance kind of HTTP/1.1 client using HTTP pipelining.
- * Most servers blocks multiple parallels requests to prevent dos-attacks,
- * therefore it is recommended to send requests with slight delays.
+ * Many servers block very frequent requests to prevent DoS-attacks,
+ * therefore requests could be sent with a slight delay.
  */
 public class PipeliningConnection implements HttpConnection {
-    public static final long DEFAULT_SENDING_INTERVAL = 10;
+    /**
+     * Default delay between sending requests in milliseconds
+     */
+    public static final long DEFAULT_SENDING_INTERVAL = 0;
 
     private final HttpAsyncClient httpClient;
     private final long sendingTimeInterval;
 
     /**
-     * Creation of this client and connection parameters saving
-     * @param server       the remote server we need connect to
+     * Constructor
+     * @param server       a remote server to connect to
      * @param port         TCP port
-     * @param asyncClient  asynchronous SocketClient instance to be used as transport for transmitting request
+     * @param asyncClient  asynchronous SocketClient instance used as a transport
      */
     public PipeliningConnection(String server, int port, SocketClient asyncClient) {
         this(server, port, asyncClient, DEFAULT_SENDING_INTERVAL);
     }
 
     /**
-     * Creation of this client and connection parameters saving
-     * @param server       the remote server we need connect to
+     * Constructor
+     * @param server       a remote server to connect to
      * @param port         TCP port
-     * @param asyncClient  asynchronous SocketClient instance to be used as transport for transmitting request
-     * @param sendingTimeInterval  the time interval of delaying send requests
+     * @param asyncClient  asynchronous SocketClient instance used as a transport
+     * @param sendingTimeInterval  delay between sending requests
      */
     public PipeliningConnection(String server, int port, SocketClient asyncClient, long sendingTimeInterval) {
         this.sendingTimeInterval = sendingTimeInterval;
@@ -108,17 +110,17 @@ public class PipeliningConnection implements HttpConnection {
 
     @Override
     public void postContent(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> urlParameters, String contentType, Charset contentCharset, byte[] content, HttpListener listener) {
-        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE support HTTP Pipelining Connection");
+        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE are allowed in HTTP Pipelining Connection");
     }
 
     @Override
     public void postWithEncodedParameters(String url, Set<Pair<String, String>> additionalHeaders, Set<Pair<String, String>> parameters, HttpListener listener) {
-        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE support HTTP Pipelining Connection");
+        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE are allowed in HTTP Pipelining Connection");
     }
 
     @Override
     public void postFormData(String url, Set<Pair<String, String>> additionalHeaders, FormRequestData requestData, HttpListener listener) {
-        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE support HTTP Pipelining Connection");
+        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE are allowed in HTTP Pipelining Connection");
     }
 
     @Override
@@ -126,14 +128,14 @@ public class PipeliningConnection implements HttpConnection {
                                Set<Pair<String, String>> headers,
                                Set<Pair<String, String>> urlParameters,
                                HttpListener listener) {
-        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE support HTTP Pipelining Connection");
+        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE are allowed in HTTP Pipelining Connection");
     }
 
     @Override
     public void options(
             Set<Pair<String, String>> headers,
             HttpListener listener) {
-        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE support HTTP Pipelining Connection");
+        throw new UnsupportedOperationException("Only methods HEAD, GET, PUT, DELETE are allowed in HTTP Pipelining Connection");
     }
 
     private synchronized void throttle() {
