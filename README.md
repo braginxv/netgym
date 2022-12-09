@@ -24,7 +24,7 @@ Thus, the following operations are executed in parallel, increasing performance:
 Runtime builds of this library don't depend on other packages and require only JDK 1.7 or later. Assembling
 depends on JUnit 4 and Mockito testing frameworks.
 
-## Adding netgym to project
+## Add netgym to a project
 
 If you use Maven then insert the following
 
@@ -94,7 +94,7 @@ asynchronously to prevent blocking userspace thread (such as UI thread).
 
 ### Synchronous flow
 
-Sometimes thread could be blocked until a response is received. In these cases you'd use synchronous
+Sometimes the control thread may be blocked until a response is received. In these cases you'd use synchronous
 adapters like this:
 
 ```java
@@ -172,7 +172,7 @@ adapters like this:
   ClientSystem.client().awaitTerminating();
 ```
 Note that there is no need to engage auxiliary threads through `subscribeOn()` cuz `netgym` client optimally
-parallels network connections itself and performs requests asynchronously.
+parallelizes network connections itself and performs requests asynchronously.
 
 ## HTTP connection types
 
